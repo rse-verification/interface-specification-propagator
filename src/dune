@@ -1,0 +1,23 @@
+(rule
+ (alias frama-c-configure)
+ (deps (universe))
+ (action (progn
+          (echo "Isp:" %{lib-available:frama-c-isp.core} "\n")
+          (echo "  - Eva:" %{lib-available:frama-c-eva.core} "\n")
+  )
+  )
+)
+
+( library
+ ( name Isp)
+ ( public_name frama-c-isp.core)
+ ( flags -open Frama_c_kernel (:standard -w -37 -w -32 -w -33 -w -9 -w -21))
+ ( libraries frama-c.kernel frama-c-eva.core)
+)
+
+(plugin
+ ( optional )
+ ( name isp)
+ ( libraries frama-c-isp.core)
+ ( site (frama-c plugins))
+)
