@@ -19,6 +19,3 @@
  (synopsis "Automatic inference of ACSL auxilliary annotations")
  (description "This plugin for the Frama-C platform for source code analysis
 of C programs provides automatic inference of ACSL auxilliary annotations."))
-
-
-(package (name frama-c-isp))
