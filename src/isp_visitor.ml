@@ -57,7 +57,7 @@ class interface_specifications_propagator _ep prj =
       | GFun (fd, _) ->
           p_debug "Processing global function: %s" fd.svar.vname;
           let kf = Option.get self#current_kf in
-          if not (!Db.Value.is_called kf) then (
+          if not (Eva.Results.is_called kf) then (    (*Change made*)
             p_warning "Unreachable function: %s" fd.svar.vname;
             JustCopy)
           (* else if fd.svar.vname = ep then 
@@ -100,10 +100,11 @@ class interface_specifications_propagator _ep prj =
     method! vstmt_aux s =
       p_debug "· Processing statement: %a" Printer.pp_stmt s;
       Isp_local_states.Visitor_State.update_ki self#current_kinstr;
-      if Isp_local_states.Visitor_State.fn_entry_state_is_none () then
-        Db.Value.get_state ~after:false self#current_kinstr
+      if Isp_local_states.Visitor_State.fn_entry_state_is_none () then  (*Change pending*)
+        Eva.Results.get_cvalue_model (Eva.Results.before_kinstr self#current_kinstr)
+       (* Db.Value.get_state ~after:false self#current_kinstr  *)
         |> Isp_local_states.Visitor_State.update_fn_entry_state;
-      if not (Db.Value.is_reachable_stmt s) then (
+      if not (Eva.Results.is_reachable s) then (
         p_warning "Unreachable statement: %a" Printer.pp_stmt s;
         JustCopy)
       else
@@ -234,8 +235,8 @@ class interface_specifications_propagator _ep prj =
                           call that mutates some global variables? *)
                 Visitor.visitFramacExpr self#frama_c_plain_copy e
                 |> Isp_local_states.Utils.process_expression);
-
-            let state = self#current_kinstr |> Db.Value.get_state ~after:true in
+            let state = Eva.Results.get_cvalue_model( Eva.Results.before_kinstr self#current_kinstr)    (* Change pending *)
+            (*let state = self#current_kinstr |> Db.Value.get_state ~after:true*) in
             let kf = Option.get self#current_kf in
             let new_kf =
               Visitor_behavior.Get.kernel_function self#behavior kf
@@ -299,8 +300,9 @@ let execute_isp () =
     else Isp_options.EntryPoint.get ()
   in
   p_result "Execute Eva with entry point \"%s\"" ep;
-  Globals.set_entry_point ep true;
-  !Db.Value.compute ();
+  Globals.set_entry_point ep true;  
+  Eva.Analysis.compute ()
+  (*!Db.Value.compute ()*); (*Change pending*)
   p_result "Eva analysis is completed.";
   let propagated_acsl =
     File.create_project_from_visitor "Propagated_ACSL"

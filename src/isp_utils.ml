@@ -106,7 +106,7 @@ let abstract_int_to_term_int i = Logic_const.tint i
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
 
 let get_eva_analysis_for_lval state lv =
-  let _, eva_result = !Db.Value.eval_lval None state lv in
+  let eva_result = Eva.Results.as_cvalue(Eva.Results.eval_lval lv (Eva.Results.in_cvalue_state state)) (*!Db.Value.eval_lval None state lv*) in  (*Change pending*)
   eva_result
 
 let create_subset_ip t ivs =
@@ -138,7 +138,7 @@ let get_lvals_with_const_index (lh, o) state =
   | Var vi -> (
       match o with
       | Index ({ enode = Lval lv_idx; _ }, _) ->
-          let _, res = !Db.Value.eval_lval None state lv_idx in
+          let _, res = None, Eva.Results.as_cvalue(Eva.Results.eval_lval lv_idx (Eva.Results.in_cvalue_state state))(*!Db.Value.eval_lval None state lv_idx*) in   (*Change pending*)
           let i : Ival.t = Cvalue.V.project_ival res in
           let values =
             if Ival.is_singleton_int i then (

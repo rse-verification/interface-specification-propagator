@@ -25,7 +25,7 @@ end
 module type Auxiliary = sig
   val emit :
     exp option ->
-    Db.Value.state ->
+    Cvalue.Model.t (*Db.Value.state*) -> (*Change Pending*)
     kernel_function ->
     (unit -> unit) Queue.t ->
     unit
@@ -289,15 +289,16 @@ module Auxiliary = struct
     | Some e ->
         p_debug "··· Emitting ensures for \\result" ~level:3;
         let t = Cil.typeOf e |> Logic_const.tresult in
-        let eva_result = !Db.Value.eval_expr state e in
-        emit_eva_result_of_term Ensures t eva_result new_kf filling_actions
+        let eva_result = Eva.Results.eval_exp e (Eva.Results.in_cvalue_state state) (* Change pending *)
+      (*  let eva_result = !Db.Value.eval_expr state e *) in
+        emit_eva_result_of_term Ensures t (Eva.Results.as_cvalue eva_result) new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
     let state = Isp_local_states.Visitor_State.get_fn_entry_state () in
 
     let em lv =
       let t = Isp_utils.lval_to_term lv in
-      let _, eva_result = !Db.Value.eval_lval None state lv in
+      let _, eva_result = None, Isp_utils.get_eva_analysis_for_lval state lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
       emit_eva_result_of_term Requires t eva_result new_kf filling_actions
     in
     List.iter
@@ -319,9 +320,9 @@ module Auxiliary = struct
         p_debug "··· Emitting requires for accessed global variable %s." name
           ~level:3;
         let t = Isp_utils.lval_to_term lv in
-        let _, eva_result = !Db.Value.eval_lval None state lv in
-        p_debug "··· Eva evaluated %a : %a" Printer.pp_lval lv Db.Value.pretty
-          eva_result ~level:3;
+        let _, eva_result = None, Isp_utils.get_eva_analysis_for_lval state lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
+        (*p_debug "··· Eva evaluated %a : %a" Printer.pp_lval lv Db.Value.pretty (*Change: Debug message commented out*)
+          eva_result ~level:3;*)
         emit_eva_result_of_term Requires t eva_result new_kf filling_actions)
 
   let emit_function_contract new_kf filling_actions =
