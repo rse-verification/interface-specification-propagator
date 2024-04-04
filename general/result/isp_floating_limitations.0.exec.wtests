@@ -1,0 +1,10 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_floating_limitations.c",
+  "cmd":
+    "frama-c -check -no-autoload-plugins -add-symbolic-path=\"/home/gustav/frama-c/frama-c-plugins/isp/_build/default:.\"     isp_floating_limitations.c -no-check -autoload-plugins -isp -isp-print > \"isp_floating_limitations.res.log\" 2> \"isp_floating_limitations.err.log\"",
+  "out": "isp_floating_limitations.res.log",
+  "err": "isp_floating_limitations.err.log",
+  "oracle_out": "../oracle/isp_floating_limitations.res.oracle",
+  "oracle_err": "../oracle/isp_floating_limitations.err.oracle"
+}
