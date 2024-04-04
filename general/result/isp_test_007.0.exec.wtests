@@ -1,0 +1,10 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_test_007.c",
+  "cmd":
+    "frama-c -check -no-autoload-plugins -add-symbolic-path=\"/home/gustav/frama-c/frama-c-plugins/isp/_build/default:.\"     isp_test_007.c -no-check -autoload-plugins -isp -isp-print > \"isp_test_007.res.log\" 2> \"isp_test_007.err.log\"",
+  "out": "isp_test_007.res.log",
+  "err": "isp_test_007.err.log",
+  "oracle_out": "../oracle/isp_test_007.res.oracle",
+  "oracle_err": "../oracle/isp_test_007.err.oracle"
+}

@@ -1,0 +1,11 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_eva_over_aproximation.c",
+  "cmd":
+    "frama-c -check -no-autoload-plugins -add-symbolic-path=\"/home/gustav/frama-c/frama-c-plugins/isp/_build/default:.\"     isp_eva_over_aproximation.c -autoload-plugins -isp -isp-print -main calculate > \"isp_eva_over_aproximation.res.log\" 2> \"isp_eva_over_aproximation.err.log\"",
+  "ret_code": 1,
+  "out": "isp_eva_over_aproximation.res.log",
+  "err": "isp_eva_over_aproximation.err.log",
+  "oracle_out": "../oracle/isp_eva_over_aproximation.res.oracle",
+  "oracle_err": "../oracle/isp_eva_over_aproximation.err.oracle"
+}
