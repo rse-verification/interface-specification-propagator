@@ -69,7 +69,7 @@ class interface_specifications_propagator _ep prj =
             Isp_local_states.Global_Vars.Mutated_Global_Vars.clear ();
             Isp_local_states.Visited_function_arguments.reset ();
             Isp_emitters.Behavior.reset_current_behavior ();
-            Isp_local_states.Visitor_State.clear_fn_entry_state ();
+            Isp_local_states.Visitor_State.clear_fn_entry_request ();
             p_debug "· Adding arguments to Visited_function_arguments.";
             List.iter
               (fun vi ->
@@ -100,10 +100,9 @@ class interface_specifications_propagator _ep prj =
     method! vstmt_aux s =
       p_debug "· Processing statement: %a" Printer.pp_stmt s;
       Isp_local_states.Visitor_State.update_ki self#current_kinstr;
-      if Isp_local_states.Visitor_State.fn_entry_state_is_none () then  (*Change pending*)
-        Eva.Results.get_cvalue_model (Eva.Results.before_kinstr self#current_kinstr)
-       (* Db.Value.get_state ~after:false self#current_kinstr  *)
-        |> Isp_local_states.Visitor_State.update_fn_entry_state;
+      if Isp_local_states.Visitor_State.fn_entry_request_is_none () then  (*Change pending*)
+        Eva.Results.before_kinstr self#current_kinstr (* Db.Value.get_state ~after:false self#current_kinstr  *)
+        |> Isp_local_states.Visitor_State.update_fn_entry_request;
       if not (Eva.Results.is_reachable s) then (
         p_warning "Unreachable statement: %a" Printer.pp_stmt s;
         JustCopy)
@@ -235,14 +234,14 @@ class interface_specifications_propagator _ep prj =
                           call that mutates some global variables? *)
                 Visitor.visitFramacExpr self#frama_c_plain_copy e
                 |> Isp_local_states.Utils.process_expression);
-            let state = Eva.Results.get_cvalue_model( Eva.Results.before_kinstr self#current_kinstr)    (* Change pending *)
+            let req = Eva.Results.before_kinstr self#current_kinstr    (* Change pending *)
             (*let state = self#current_kinstr |> Db.Value.get_state ~after:true*) in
             let kf = Option.get self#current_kf in
             let new_kf =
               Visitor_behavior.Get.kernel_function self#behavior kf
             in
             let filling_actions = self#get_filling_actions in
-            Isp_emitters.Auxiliary.emit exp_opt state new_kf filling_actions;
+            Isp_emitters.Auxiliary.emit exp_opt req new_kf filling_actions;
             Isp_local_states.Fun_Access_Mutate.add kf;
             JustCopy
         | Goto ({ contents = _ }, (_, _)) ->

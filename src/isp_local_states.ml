@@ -15,17 +15,17 @@ module type Visitor_State = sig
   val frama_c_plain_copy_is_none : unit -> bool
   val get_frama_c_plain_copy : unit -> Visitor.frama_c_visitor
   val update_frama_c_plain_copy : Visitor.frama_c_visitor -> unit
-  val fn_entry_state_is_none : unit -> bool
-  val get_fn_entry_state : unit -> Cvalue.Model.t (*Db.Value.state*)       (*Change pending*)
-  val update_fn_entry_state : Cvalue.Model.t (*Db.Value.state*) -> unit      (*Change pending*)
-  val clear_fn_entry_state : unit -> unit
+  val fn_entry_request_is_none : unit -> bool
+  val get_fn_entry_request : unit -> Eva.Results.request (*Db.Value.state*)       (*Change pending*)
+  val update_fn_entry_request : Eva.Results.request (*Db.Value.state*) -> unit      (*Change pending*)
+  val clear_fn_entry_request : unit -> unit
 end
 
 module Visitor_State : Visitor_State = struct
   let ki = ref (Cil_datatype.Kinstr.kinstr_of_opt_stmt None)
   let kf = ref None
   let frama_c_plain_copy = ref None
-  let fn_entry_state = ref None
+  let fn_entry_request = ref None
   let get_ki () = !ki
 
   let frama_c_plain_copy_is_none () =
@@ -43,19 +43,19 @@ module Visitor_State : Visitor_State = struct
   let update_ki new_ki = ki := new_ki
   let update_frama_c_plain_copy new_v = frama_c_plain_copy := Some new_v
 
-  let fn_entry_state_is_none () =
-    match !fn_entry_state with
+  let fn_entry_request_is_none () =
+    match !fn_entry_request with
     | Some _ -> false
     | None -> true
 
-  let get_fn_entry_state () =
-    match !fn_entry_state with
-    | Some es -> es
+  let get_fn_entry_request () =
+    match !fn_entry_request with
+    | Some er -> er
     | None ->
-        failwith "Isp: there must be an entry_state in the state at this point!"
+        failwith "Isp: there must be an entry_request in the state at this point!"
 
-  let update_fn_entry_state state = fn_entry_state := Some state
-  let clear_fn_entry_state () = fn_entry_state := None
+  let update_fn_entry_request req = fn_entry_request := Some req
+  let clear_fn_entry_request () = fn_entry_request := None
 end
 
 module type Global_Vars = sig
@@ -117,8 +117,7 @@ module Global_Vars : Global_Vars = struct
     let add lv =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
-        |> Eva.Results.before_kinstr                                (*Change pending*)
-        |> Eva.Results.get_cvalue_model(*Db.Value.get_state*)       (*Change pending*)
+        |> Eva.Results.before_kinstr                                (*Change pending*)(*Db.Value.get_state*)       (*Change pending*)
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;
@@ -155,8 +154,7 @@ module Global_Vars : Global_Vars = struct
     let add lv =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
-        |> Eva.Results.before_kinstr                                (*Change pending*)
-        |> Eva.Results.get_cvalue_model(*Db.Value.get_state*)       (*Change pending*)
+        |> Eva.Results.before_kinstr                                (*Change pending*)(*Db.Value.get_state*)       (*Change pending*)
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;
