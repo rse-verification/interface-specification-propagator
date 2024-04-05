@@ -106,7 +106,7 @@ let abstract_int_to_term_int i = Logic_const.tint i
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
 
 let get_eva_analysis_for_lval req lv =
-  let eva_result = Eva.Results.as_ival(Eva.Results.eval_lval lv req) (*!Db.Value.eval_lval None state lv*) in  (*Change pending*)
+  let eva_result = Eva.Results.as_ival(Eva.Results.eval_lval lv req) in 
   eva_result
 
 let create_subset_ip t ivs =
@@ -138,8 +138,8 @@ let get_lvals_with_const_index (lh, o) req =
   | Var vi -> (
       match o with
       | Index ({ enode = Lval lv_idx; _ }, _) ->
-          let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req)(*!Db.Value.eval_lval None state lv_idx*) in   (*Change pending*)
-          let i : Ival.t = Eva.Results.default Ival.zero res in     (*Don't know if zero is a good default, but it should not default (I think)*)
+          let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req) in
+          let i : Ival.t = Result.get_ok res in     (*Note that Result is a default Ocaml library outside of frama-c*)
           let values =
             if Ival.is_singleton_int i then (
               p_debug "··· The lval index evaluates to a single value." ~level:3;
