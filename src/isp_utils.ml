@@ -105,8 +105,8 @@ let lval_to_term lv =
 let abstract_int_to_term_int i = Logic_const.tint i
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
 
-let get_eva_analysis_for_lval state lv =
-  let eva_result = Eva.Results.as_cvalue(Eva.Results.eval_lval lv (Eva.Results.in_cvalue_state state)) (*!Db.Value.eval_lval None state lv*) in  (*Change pending*)
+let get_eva_analysis_for_lval req lv =
+  let eva_result = Eva.Results.as_ival(Eva.Results.eval_lval lv req) (*!Db.Value.eval_lval None state lv*) in  (*Change pending*)
   eva_result
 
 let create_subset_ip t ivs =
@@ -133,13 +133,13 @@ let is_array_with_lval_index (lh, o) =
       | _ -> false)
   | _ -> false
 
-let get_lvals_with_const_index (lh, o) state =
+let get_lvals_with_const_index (lh, o) req =
   match lh with
   | Var vi -> (
       match o with
       | Index ({ enode = Lval lv_idx; _ }, _) ->
-          let _, res = None, Eva.Results.as_cvalue(Eva.Results.eval_lval lv_idx (Eva.Results.in_cvalue_state state))(*!Db.Value.eval_lval None state lv_idx*) in   (*Change pending*)
-          let i : Ival.t = Cvalue.V.project_ival res in
+          let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req)(*!Db.Value.eval_lval None state lv_idx*) in   (*Change pending*)
+          let i : Ival.t = Eva.Results.default Ival.zero res in     (*Don't know if zero is a good default, but it should not default (I think)*)
           let values =
             if Ival.is_singleton_int i then (
               p_debug "··· The lval index evaluates to a single value." ~level:3;

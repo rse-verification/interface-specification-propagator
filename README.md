@@ -17,6 +17,9 @@ The purpose of this Frama-C plugin is to automatically provide contract componen
 
 Annotate your program with ACSL postconditions / ensures clauses. Then our plugin creates auxiliary requires and assigns clauses.
 There is limited support for also inferring some ensures clauses.
+
+To run the plugin on file test.c, use the following command: ```frama-c -isp -isp-print test.c```
+This will attempt to use ```main()``` as the entry point. If another function should be used instead this can be specified with the option: ```-isp-entry-point "function" ```
                                              
 ## THEORY
 

@@ -25,7 +25,7 @@ end
 module type Auxiliary = sig
   val emit :
     exp option ->
-    Cvalue.Model.t (*Db.Value.state*) -> (*Change Pending*)
+    Eva.Results.request (*Db.Value.state*) -> (*Change Pending*)
     kernel_function ->
     (unit -> unit) Queue.t ->
     unit
@@ -178,8 +178,8 @@ module Auxiliary = struct
       infered behavior contract of the given function. *)
   let emit_eva_result_of_term spec_type t eva_result new_kf filling_actions =
     (* This checks that the value may not be a pointer. *)
-    if Cvalue.V.is_arithmetic eva_result then
-      let i : Ival.t = Cvalue.V.project_ival eva_result in
+    if Result.is_ok eva_result then
+      let i : Ival.t = Result.get_ok eva_result in
       let ip_list =
         if Ival.is_int i then (
           p_debug "··· The range is of type int." ~level:3;
@@ -263,19 +263,19 @@ module Auxiliary = struct
 
   (** Add ensures for the mutated global variables to the infered behavior contract
       of the given function. *)
-  let emit_ensures_for_m_g_v state new_kf filling_actions =
+  let emit_ensures_for_m_g_v req new_kf filling_actions =
     Isp_local_states.Global_Vars.Mutated_Global_Vars.iter (fun name lv ->
         p_debug "··· Emitting ensures for global variable %s" name ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval state lv in
+        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
         let t = Isp_utils.lval_to_term lv in
         emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
 
-  let emit_ensures_for_ptr_func_args state new_kf filling_actions =
+  let emit_ensures_for_ptr_func_args req new_kf filling_actions =
     List.iter
       (fun lv ->
         p_debug "··· Emitting ensures for pointer argument %a." Printer.pp_lval
           lv ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval state lv in
+        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
         let t = Isp_utils.lval_to_term lv in
         emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
@@ -283,22 +283,22 @@ module Auxiliary = struct
   (** Add ensures for the result (when exist) to the infered behavior contract
       of the given function.
       Todo: Factor out the pattern matching. *)
-  let emit_ensures_for_results exp_opt state new_kf filling_actions =
+  let emit_ensures_for_results exp_opt req new_kf filling_actions =
     match exp_opt with
     | None -> ()
     | Some e ->
         p_debug "··· Emitting ensures for \\result" ~level:3;
         let t = Cil.typeOf e |> Logic_const.tresult in
-        let eva_result = Eva.Results.eval_exp e (Eva.Results.in_cvalue_state state) (* Change pending *)
+        let eva_result = Eva.Results.eval_exp e req (* Change pending *)
       (*  let eva_result = !Db.Value.eval_expr state e *) in
-        emit_eva_result_of_term Ensures t (Eva.Results.as_cvalue eva_result) new_kf filling_actions
+        emit_eva_result_of_term Ensures t (Eva.Results.as_ival eva_result) new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
-    let state = Isp_local_states.Visitor_State.get_fn_entry_state () in
+    let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
 
     let em lv =
       let t = Isp_utils.lval_to_term lv in
-      let _, eva_result = None, Isp_utils.get_eva_analysis_for_lval state lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
+      let eva_result = Isp_utils.get_eva_analysis_for_lval req lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
       emit_eva_result_of_term Requires t eva_result new_kf filling_actions
     in
     List.iter
@@ -315,12 +315,12 @@ module Auxiliary = struct
       (Isp_local_states.Visited_function_arguments.get_acc_ptr_arg_to_emit ())
 
   let emit_req_for_global_variables new_kf filling_actions =
-    let state = Isp_local_states.Visitor_State.get_fn_entry_state () in
+    let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
     Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
         p_debug "··· Emitting requires for accessed global variable %s." name
           ~level:3;
         let t = Isp_utils.lval_to_term lv in
-        let _, eva_result = None, Isp_utils.get_eva_analysis_for_lval state lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
+        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
         (*p_debug "··· Eva evaluated %a : %a" Printer.pp_lval lv Db.Value.pretty (*Change: Debug message commented out*)
           eva_result ~level:3;*)
         emit_eva_result_of_term Requires t eva_result new_kf filling_actions)
@@ -332,7 +332,7 @@ module Auxiliary = struct
           [ Behavior.get_current_behavior () ])
       filling_actions
 
-  let emit exp_opt state new_kf filling_actions =
+  let emit exp_opt req new_kf filling_actions =
     p_debug "· Start emission process for functions %s"
       (Kernel_function.get_name new_kf);
     emit_assumes_true new_kf filling_actions;
@@ -341,9 +341,9 @@ module Auxiliary = struct
     emit_req_for_function_parameters new_kf filling_actions;
     emit_req_for_global_variables new_kf filling_actions;
     emit_assigns new_kf filling_actions;
-    emit_ensures_for_m_g_v state new_kf filling_actions;
-    emit_ensures_for_ptr_func_args state new_kf filling_actions;
-    emit_ensures_for_results exp_opt state new_kf filling_actions;
+    emit_ensures_for_m_g_v req new_kf filling_actions;
+    emit_ensures_for_ptr_func_args req new_kf filling_actions;
+    emit_ensures_for_results exp_opt req new_kf filling_actions;
     emit_function_contract new_kf filling_actions;
     p_debug "· Emission process for functions %s is completed."
       (Kernel_function.get_name new_kf)
