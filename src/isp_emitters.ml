@@ -25,7 +25,7 @@ end
 module type Auxiliary = sig
   val emit :
     exp option ->
-    Eva.Results.request (*Db.Value.state*) -> (*Change Pending*)
+    Eva.Results.request ->
     kernel_function ->
     (unit -> unit) Queue.t ->
     unit
@@ -179,7 +179,7 @@ module Auxiliary = struct
   let emit_eva_result_of_term spec_type t eva_result new_kf filling_actions =
     (* This checks that the value may not be a pointer. *)
     if Result.is_ok eva_result then
-      let i : Ival.t = Result.get_ok eva_result in
+      let i : Ival.t = Result.get_ok eva_result in    (*Note that Result is a default Ocaml library outside of frama-c*)
       let ip_list =
         if Ival.is_int i then (
           p_debug "··· The range is of type int." ~level:3;
@@ -289,8 +289,7 @@ module Auxiliary = struct
     | Some e ->
         p_debug "··· Emitting ensures for \\result" ~level:3;
         let t = Cil.typeOf e |> Logic_const.tresult in
-        let eva_result = Eva.Results.eval_exp e req (* Change pending *)
-      (*  let eva_result = !Db.Value.eval_expr state e *) in
+        let eva_result = Eva.Results.eval_exp e req in
         emit_eva_result_of_term Ensures t (Eva.Results.as_ival eva_result) new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
@@ -298,7 +297,7 @@ module Auxiliary = struct
 
     let em lv =
       let t = Isp_utils.lval_to_term lv in
-      let eva_result = Isp_utils.get_eva_analysis_for_lval req lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
+      let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
       emit_eva_result_of_term Requires t eva_result new_kf filling_actions
     in
     List.iter
@@ -320,7 +319,7 @@ module Auxiliary = struct
         p_debug "··· Emitting requires for accessed global variable %s." name
           ~level:3;
         let t = Isp_utils.lval_to_term lv in
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv (*!Db.Value.eval_lval None state lv*) in    (*Change pending*)
+        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
         (*p_debug "··· Eva evaluated %a : %a" Printer.pp_lval lv Db.Value.pretty (*Change: Debug message commented out*)
           eva_result ~level:3;*)
         emit_eva_result_of_term Requires t eva_result new_kf filling_actions)

@@ -16,8 +16,8 @@ module type Visitor_State = sig
   val get_frama_c_plain_copy : unit -> Visitor.frama_c_visitor
   val update_frama_c_plain_copy : Visitor.frama_c_visitor -> unit
   val fn_entry_request_is_none : unit -> bool
-  val get_fn_entry_request : unit -> Eva.Results.request (*Db.Value.state*)       (*Change pending*)
-  val update_fn_entry_request : Eva.Results.request (*Db.Value.state*) -> unit      (*Change pending*)
+  val get_fn_entry_request : unit -> Eva.Results.request
+  val update_fn_entry_request : Eva.Results.request -> unit
   val clear_fn_entry_request : unit -> unit
 end
 
@@ -117,7 +117,7 @@ module Global_Vars : Global_Vars = struct
     let add lv =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
-        |> Eva.Results.before_kinstr                                (*Change pending*)(*Db.Value.get_state*)       (*Change pending*)
+        |> Eva.Results.before_kinstr
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;
@@ -154,7 +154,7 @@ module Global_Vars : Global_Vars = struct
     let add lv =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
-        |> Eva.Results.before_kinstr                                (*Change pending*)(*Db.Value.get_state*)       (*Change pending*)
+        |> Eva.Results.before_kinstr
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;

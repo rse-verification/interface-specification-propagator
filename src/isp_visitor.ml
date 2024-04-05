@@ -57,7 +57,7 @@ class interface_specifications_propagator _ep prj =
       | GFun (fd, _) ->
           p_debug "Processing global function: %s" fd.svar.vname;
           let kf = Option.get self#current_kf in
-          if not (Eva.Results.is_called kf) then (    (*Change made*)
+          if not (Eva.Results.is_called kf) then (
             p_warning "Unreachable function: %s" fd.svar.vname;
             JustCopy)
           (* else if fd.svar.vname = ep then 
@@ -100,8 +100,8 @@ class interface_specifications_propagator _ep prj =
     method! vstmt_aux s =
       p_debug "· Processing statement: %a" Printer.pp_stmt s;
       Isp_local_states.Visitor_State.update_ki self#current_kinstr;
-      if Isp_local_states.Visitor_State.fn_entry_request_is_none () then  (*Change pending*)
-        Eva.Results.before_kinstr self#current_kinstr (* Db.Value.get_state ~after:false self#current_kinstr  *)
+      if Isp_local_states.Visitor_State.fn_entry_request_is_none () then
+        Eva.Results.before_kinstr self#current_kinstr
         |> Isp_local_states.Visitor_State.update_fn_entry_request;
       if not (Eva.Results.is_reachable s) then (
         p_warning "Unreachable statement: %a" Printer.pp_stmt s;
@@ -234,8 +234,7 @@ class interface_specifications_propagator _ep prj =
                           call that mutates some global variables? *)
                 Visitor.visitFramacExpr self#frama_c_plain_copy e
                 |> Isp_local_states.Utils.process_expression);
-            let req = Eva.Results.before_kinstr self#current_kinstr    (* Change pending *)
-            (*let state = self#current_kinstr |> Db.Value.get_state ~after:true*) in
+            let req = Eva.Results.before_kinstr self#current_kinstr in
             let kf = Option.get self#current_kf in
             let new_kf =
               Visitor_behavior.Get.kernel_function self#behavior kf
@@ -300,8 +299,7 @@ let execute_isp () =
   in
   p_result "Execute Eva with entry point \"%s\"" ep;
   Globals.set_entry_point ep true;  
-  Eva.Analysis.compute ()
-  (*!Db.Value.compute ()*); (*Change pending*)
+  Eva.Analysis.compute ();
   p_result "Eva analysis is completed.";
   let propagated_acsl =
     File.create_project_from_visitor "Propagated_ACSL"
