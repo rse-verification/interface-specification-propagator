@@ -139,7 +139,7 @@ let get_lvals_with_const_index (lh, o) req =
       match o with
       | Index ({ enode = Lval lv_idx; _ }, _) ->
           let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req) in
-          let i : Ival.t = Result.get_ok res in     (*Note that Result is a default Ocaml library outside of frama-c*)
+          let i : Ival.t = Result.get_ok res in
           let values =
             if Ival.is_singleton_int i then (
               p_debug "··· The lval index evaluates to a single value." ~level:3;

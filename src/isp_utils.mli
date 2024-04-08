@@ -22,7 +22,7 @@ val abstract_int_to_term_int : Integer.t -> Cil_types.term
 val abstract_float_to_term_float : Fval.F.t -> Cil_types.term
 (** Converts an [Fval.F.t] to a [Cil_types.term]. *)
 
-val get_eva_analysis_for_lval : (*Db.Value.state*) Eva.Results.request -> Cil_types.lval -> (*Db.Value.t*) Ival.t Eva.Results.result   (*Change pending*)
+val get_eva_analysis_for_lval : Eva.Results.request -> Cil_types.lval -> Ival.t Eva.Results.result
 (** Gets the eva analysis result for the given lval. *)
 
 val create_subset_ip :
@@ -34,6 +34,6 @@ val is_array_with_lval_index : Cil_types.lval -> bool
 (** Checks whether the lval is an array with a lval index. *)
 
 val get_lvals_with_const_index :
-  Cil_types.lval -> (*Db.Value.state*) Eva.Results.request -> (string * Cil_types.lval) list    (*Change pending*)
+  Cil_types.lval -> Eva.Results.request -> (string * Cil_types.lval) list
 (** Converts a lval of an array with a lval index to a list of [(name, lval)]
     with a constant index *)
