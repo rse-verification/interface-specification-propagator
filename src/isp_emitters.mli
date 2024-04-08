@@ -15,7 +15,7 @@ module Behavior : Behavior
 module type Auxiliary = sig
   val emit :
     Cil_types.exp option ->
-    Eva.Results.request(*Db.Value.state*) ->       (*Change pending*)
+    Eva.Results.request ->
     Cil_types.kernel_function ->
     (unit -> unit) Queue.t ->
     unit

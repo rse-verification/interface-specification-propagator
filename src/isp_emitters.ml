@@ -177,9 +177,9 @@ module Auxiliary = struct
   (** Add ensures for the given term with the eva analysis results to the
       infered behavior contract of the given function. *)
   let emit_eva_result_of_term spec_type t eva_result new_kf filling_actions =
-    (* This checks that the value may not be a pointer. *)
+    (* This checks that eva_result is a properly generated ivalue and not an error which it will be if the term is a pointer. *)
     if Result.is_ok eva_result then
-      let i : Ival.t = Result.get_ok eva_result in    (*Note that Result is a default Ocaml library outside of frama-c*)
+      let i : Ival.t = Result.get_ok eva_result in
       let ip_list =
         if Ival.is_int i then (
           p_debug "··· The range is of type int." ~level:3;
@@ -320,8 +320,6 @@ module Auxiliary = struct
           ~level:3;
         let t = Isp_utils.lval_to_term lv in
         let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        (*p_debug "··· Eva evaluated %a : %a" Printer.pp_lval lv Db.Value.pretty (*Change: Debug message commented out*)
-          eva_result ~level:3;*)
         emit_eva_result_of_term Requires t eva_result new_kf filling_actions)
 
   let emit_function_contract new_kf filling_actions =
