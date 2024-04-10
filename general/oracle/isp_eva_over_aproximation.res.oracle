@@ -1,6 +1,0 @@
-[kernel] Parsing isp_eva_over_aproximation.c (with preprocessing)
-[isp] No entry point was specified! The default entry point "main" will be used.
-[isp] Execute Eva with entry point "main"
-[kernel] User Error: cannot find entry point `main'.
-  Please use option `-main' for specifying a valid entry point.
-[kernel] Frama-C aborted: invalid user input.
