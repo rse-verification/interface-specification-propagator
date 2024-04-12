@@ -99,11 +99,11 @@ module Global_Vars : Global_Vars = struct
   end
 
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
-    the global variables that has been read during the execution of the currently visited 
+    the global variables that has been read or mutated during the execution of the currently visited 
     function.
     Todo: Convert this into a set of lvals instead of a hashmap
     *)
-  module Accessed_Global_Vars = struct
+  module Global_Hashtbl = struct
     let (hashtable : (string, lval) Hashtbl.t) = Hashtbl.create 200
 
     let contains name =
@@ -121,54 +121,33 @@ module Global_Vars : Global_Vars = struct
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;
-               p_debug "· %s is added to Accessed_Global_Vars." name)
+               p_debug "· %s is added to hashtable." name)
       else
         let name = Isp_utils.create_string_of_lval_name lv in
         Hashtbl.replace hashtable name lv;
-        p_debug "· %s is added to Accessed_Global_Vars." name
+        p_debug "· %s is added to hashtable." name
 
     let iter fn = Hashtbl.iter fn hashtable
 
     let clear () =
       Hashtbl.reset hashtable;
-      p_debug "· Cleared Accessed_Global_Vars."
+      p_debug "· Cleared hashtable."
+  end
+
+  (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
+    the global variables that has been read during the execution of the currently visited 
+    function.
+    *)
+  module Accessed_Global_Vars = struct
+  include Global_Hashtbl
   end
 
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
     the global variables that has been mutated during the execution of the currently visited 
     function.
-    Todo: Convert this into a set of lvals instead of a hashmap
-    Todo: Code repetition of module Accessed_Global_Vars. There must be a way to avoid this.
     *)
   module Mutated_Global_Vars = struct
-    let (hashtable : (string, lval) Hashtbl.t) = Hashtbl.create 200
-
-    let contains name =
-      match Hashtbl.find_opt hashtable name with
-      | None -> false
-      | Some _ -> true
-
-    let is_empty () = Hashtbl.length hashtable = 0
-    let get_opt name = Hashtbl.find_opt hashtable name
-
-    let add lv =
-      if Isp_utils.is_array_with_lval_index lv then
-        Visitor_State.get_ki ()
-        |> Eva.Results.before_kinstr
-        |> Isp_utils.get_lvals_with_const_index lv
-        |> List.iter (fun (name, lv) ->
-               Hashtbl.replace hashtable name lv;
-               p_debug "· %s is added to Mutated_Global_Vars." name)
-      else
-        let name = Isp_utils.create_string_of_lval_name lv in
-        Hashtbl.replace hashtable name lv;
-        p_debug "· %s is added to Mutated_Global_Vars." name
-
-    let iter fn = Hashtbl.iter fn hashtable
-
-    let clear () =
-      Hashtbl.reset hashtable;
-      p_debug "· Cleared Mutated_Global_Vars."
+  include Global_Hashtbl
   end
 
   (** Will clear the global variables set and the Accessed and Mutated hashtables. *)
