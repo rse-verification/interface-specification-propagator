@@ -16,9 +16,6 @@ val lval_to_address_term : Cil_types.lval -> Cil_types.term
 val lval_to_term : Cil_types.lval -> Cil_types.term
 (** Converts a [Cil_types.lval] to [Cil_types.term]. *)
 
-val abstract_int_to_term_int : Integer.t -> Cil_types.term
-(** Converts an [Integer.t] to a [Cil_types.term]. *)
-
 val abstract_float_to_term_float : Fval.F.t -> Cil_types.term
 (** Converts an [Fval.F.t] to a [Cil_types.term]. *)
 

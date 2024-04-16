@@ -101,7 +101,7 @@ module Global_Vars : Global_Vars = struct
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
     the global variables that has been read or mutated during the execution of the currently visited 
     function.
-    Todo: Convert this into a set of lvals instead of a hashmap
+    Todo: Convert this into a set of lvals instead of a hashmap (*Requires significant rewrite to be worth it*)
     *)
   module Global_Hashtbl = struct
     let (hashtable : (string, lval) Hashtbl.t) = Hashtbl.create 200
