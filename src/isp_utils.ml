@@ -101,8 +101,6 @@ let lval_to_term lv =
   let e = Cil.new_exp ~loc:Cil_datatype.Location.unknown (Lval lv) in
   Logic_utils.expr_to_term e
 
-(* Todo: remove this function, (became too simple after the bug fix). *)
-let abstract_int_to_term_int i = Logic_const.tint i
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
 
 let get_eva_analysis_for_lval req lv =
@@ -110,7 +108,7 @@ let get_eva_analysis_for_lval req lv =
   eva_result
 
 let create_subset_ip t ivs =
-  let its = List.map (fun iv -> abstract_int_to_term_int iv) ivs in
+  let its = List.map (fun iv -> Logic_const.tint iv) ivs in
   let li = Cil_const.make_logic_info "\\subset" in
   li.l_tparams <- [ "a" ];
   let s1 = Cil_const.make_logic_var_formal "s1" Linteger in

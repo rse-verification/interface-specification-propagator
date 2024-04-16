@@ -186,7 +186,7 @@ module Auxiliary = struct
           if Ival.is_singleton_int i then (
             p_debug "··· The range contains a single value." ~level:3;
             let iv = Ival.project_int i in
-            let it = Isp_utils.abstract_int_to_term_int iv in
+            let it = Logic_const.tint iv in
             let ip =
               Logic_const.prel (Req, t, it) |> Logic_const.new_predicate
             in
@@ -200,10 +200,10 @@ module Auxiliary = struct
             p_debug "··· The range contains is an interval of values." ~level:3;
             let lower_bound = Option.get (Ival.min_int i) in
             let upper_bound = Option.get (Ival.max_int i) in
-            let lower_term = Isp_utils.abstract_int_to_term_int lower_bound in
+            let lower_term = Logic_const.tint lower_bound in
             let pl : predicate = Logic_const.prel (Rge, t, lower_term) in
             let ipl : identified_predicate = Logic_const.new_predicate pl in
-            let upper_term = Isp_utils.abstract_int_to_term_int upper_bound in
+            let upper_term = Logic_const.tint upper_bound in
             let pu : predicate = Logic_const.prel (Rle, t, upper_term) in
             let ipu : identified_predicate = Logic_const.new_predicate pu in
             [ ipl; ipu ]))
