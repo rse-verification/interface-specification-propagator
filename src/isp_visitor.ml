@@ -168,10 +168,10 @@ class interface_specifications_propagator _ep prj =
                 | None -> ()
                 | Some (Var vi, o) ->
                     p_debug "· The lval of the Call is of type Var.";
-                    if Isp_local_states.Global_Vars.contains vi.vid then
+                    if Isp_local_states.Global_Vars.contains vi.vid then(
                       p_debug ~level:2 "·· Adding to Mutated_Global_Vars";
                       Visitor.visitFramacLval self#frama_c_plain_copy (Var vi, o)
-                      |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add;
+                      |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add)
                 | Some (Mem _, _) ->
                     p_warning
                       "The lval of the Call is of type Mem. Not implemented \
