@@ -145,6 +145,7 @@ module Global_Vars : Global_Vars = struct
     function.
     *)
   module Mutated_Global_Vars = struct
+
     let (mutated : (string, lval) Hashtbl.t) = Hashtbl.create 200
     let contains name = Global_Hashtbl.contains name mutated
     let is_empty () = Global_Hashtbl.is_empty mutated

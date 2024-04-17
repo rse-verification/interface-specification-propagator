@@ -25,6 +25,7 @@ To run the plugin on file test.c, use the following command: ```frama-c -isp tes
 ##### Options ####
 
 - Use ```-isp-print``` if you want the result to be printed.
+
 - Use ```-isp-entry-point "function" ``` if you want to use a different function as the entry point for the analysis than the default ```main```.
                                              
 ## THEORY
