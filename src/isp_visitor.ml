@@ -65,9 +65,7 @@ class interface_specifications_propagator _ep prj =
               p_debug "Glob.";
               JustCopy) *)
           else (
-            p_debug ~level:2 "·· Clearing Accessed_Global_Vars";
             Isp_local_states.Global_Vars.Accessed_Global_Vars.clear ();
-            p_debug ~level:2 "·· Clearing Mutated_Global_Vars";
             Isp_local_states.Global_Vars.Mutated_Global_Vars.clear ();
             Isp_local_states.Visited_function_arguments.reset ();
             Isp_emitters.Behavior.reset_current_behavior ();
@@ -121,7 +119,6 @@ class interface_specifications_propagator _ep prj =
                     (* Store assigned variable if global. *)
                     if Isp_local_states.Global_Vars.contains vi.vid then (
                       p_debug "· The Var is a global variable.";
-                      p_debug ~level:2 "·· Adding to Mutated_Global_Vars";
                       Visitor.visitFramacLval self#frama_c_plain_copy lv
                       |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add;)
                     else if
@@ -169,7 +166,6 @@ class interface_specifications_propagator _ep prj =
                 | Some (Var vi, o) ->
                     p_debug "· The lval of the Call is of type Var.";
                     if Isp_local_states.Global_Vars.contains vi.vid then(
-                      p_debug ~level:2 "·· Adding to Mutated_Global_Vars";
                       Visitor.visitFramacLval self#frama_c_plain_copy (Var vi, o)
                       |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add)
                 | Some (Mem _, _) ->
