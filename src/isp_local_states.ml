@@ -65,7 +65,6 @@ module type Global_Vars = sig
   module type Global_Vars_Hashtbl_Sig = sig
     val contains : string -> bool
     val is_empty : unit -> bool
-    val get_opt : string -> lval option
     val add : lval -> unit
     val iter : (string -> lval -> unit) -> unit
     val clear : unit -> unit
@@ -92,7 +91,6 @@ module Global_Vars : Global_Vars = struct
   module type Global_Vars_Hashtbl_Sig = sig
     val contains : string -> bool
     val is_empty : unit -> bool
-    val get_opt : string -> lval option
     val add : lval -> unit
     val iter : (string -> lval -> unit) -> unit
     val clear : unit -> unit
@@ -104,17 +102,14 @@ module Global_Vars : Global_Vars = struct
     Todo: Convert this into a set of lvals instead of a hashmap (*Requires significant rewrite to be worth it*)
     *)
   module Global_Hashtbl = struct
-    let (hashtable : (string, lval) Hashtbl.t) = Hashtbl.create 200
-
-    let contains name =
+    let contains name hashtable =
       match Hashtbl.find_opt hashtable name with
       | None -> false
       | Some _ -> true
 
-    let is_empty () = Hashtbl.length hashtable = 0
-    let get_opt name = Hashtbl.find_opt hashtable name
+    let is_empty hashtable = Hashtbl.length hashtable = 0
 
-    let add lv =
+    let add lv hashtable =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
         |> Eva.Results.before_kinstr
@@ -127,9 +122,9 @@ module Global_Vars : Global_Vars = struct
         Hashtbl.replace hashtable name lv;
         p_debug "· %s is added to hashtable." name
 
-    let iter fn = Hashtbl.iter fn hashtable
+    let iter fn hashtable = Hashtbl.iter fn hashtable
 
-    let clear () =
+    let clear hashtable =
       Hashtbl.reset hashtable;
       p_debug "· Cleared hashtable."
   end
@@ -139,7 +134,12 @@ module Global_Vars : Global_Vars = struct
     function.
     *)
   module Accessed_Global_Vars = struct
-  include Global_Hashtbl
+    let (accessed : (string, lval) Hashtbl.t) = Hashtbl.create 200
+    let contains name = Global_Hashtbl.contains name accessed
+    let is_empty () = Global_Hashtbl.is_empty accessed
+    let add lv = Global_Hashtbl.add lv accessed
+    let iter fn = Global_Hashtbl.iter fn accessed
+    let clear () = Global_Hashtbl.clear accessed
   end
 
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
@@ -147,7 +147,12 @@ module Global_Vars : Global_Vars = struct
     function.
     *)
   module Mutated_Global_Vars = struct
-  include Global_Hashtbl
+    let (mutated : (string, lval) Hashtbl.t) = Hashtbl.create 200
+    let contains name = Global_Hashtbl.contains name mutated
+    let is_empty () = Global_Hashtbl.is_empty mutated
+    let add lv = Global_Hashtbl.add lv mutated
+    let iter fn = Global_Hashtbl.iter fn mutated
+    let clear () = Global_Hashtbl.clear mutated
   end
 
   (** Will clear the global variables set and the Accessed and Mutated hashtables. *)
