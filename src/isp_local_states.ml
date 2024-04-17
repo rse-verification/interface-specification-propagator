@@ -109,24 +109,22 @@ module Global_Vars : Global_Vars = struct
 
     let is_empty hashtable = Hashtbl.length hashtable = 0
 
-    let add lv hashtable =
+    let add lv ?tblname:(tbl="hashtable") hashtable =
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
         |> Eva.Results.before_kinstr
         |> Isp_utils.get_lvals_with_const_index lv
         |> List.iter (fun (name, lv) ->
                Hashtbl.replace hashtable name lv;
-               p_debug "· %s is added to hashtable." name)
+               p_debug "· %s is added to %s." name tbl)
       else
         let name = Isp_utils.create_string_of_lval_name lv in
         Hashtbl.replace hashtable name lv;
-        p_debug "· %s is added to hashtable." name
+        p_debug "· %s is added to %s." name tbl
 
     let iter fn hashtable = Hashtbl.iter fn hashtable
 
-    let clear hashtable =
-      Hashtbl.reset hashtable;
-      p_debug "· Cleared hashtable."
+    let clear hashtable = Hashtbl.reset hashtable
   end
 
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
@@ -137,9 +135,9 @@ module Global_Vars : Global_Vars = struct
     let (accessed : (string, lval) Hashtbl.t) = Hashtbl.create 200
     let contains name = Global_Hashtbl.contains name accessed
     let is_empty () = Global_Hashtbl.is_empty accessed
-    let add lv = Global_Hashtbl.add lv accessed
+    let add lv = Global_Hashtbl.add lv accessed ~tblname:"Accessed_Global_Vars"
     let iter fn = Global_Hashtbl.iter fn accessed
-    let clear () = Global_Hashtbl.clear accessed
+    let clear () = Global_Hashtbl.clear accessed; p_debug "· Cleared Accessed_Global_Vars."
   end
 
   (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
@@ -150,9 +148,9 @@ module Global_Vars : Global_Vars = struct
     let (mutated : (string, lval) Hashtbl.t) = Hashtbl.create 200
     let contains name = Global_Hashtbl.contains name mutated
     let is_empty () = Global_Hashtbl.is_empty mutated
-    let add lv = Global_Hashtbl.add lv mutated
+    let add lv = Global_Hashtbl.add lv mutated ~tblname:"Mutated_Global_Vars"
     let iter fn = Global_Hashtbl.iter fn mutated
-    let clear () = Global_Hashtbl.clear mutated
+    let clear () = Global_Hashtbl.clear mutated; p_debug "· Cleared Mutated_Global_Vars."
   end
 
   (** Will clear the global variables set and the Accessed and Mutated hashtables. *)
