@@ -120,7 +120,7 @@ class interface_specifications_propagator _ep prj =
                     if Isp_local_states.Global_Vars.contains vi.vid then (
                       p_debug "· The Var is a global variable.";
                       Visitor.visitFramacLval self#frama_c_plain_copy lv
-                      |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add;)
+                      |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add)
                     else if
                       Isp_local_states.Visited_function_arguments
                       .ptr_arg_ids_contain vi.vid
