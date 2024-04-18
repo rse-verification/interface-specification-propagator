@@ -119,7 +119,8 @@ module Auxiliary = struct
 
   (** Add required [\valid_read] and [\valid] for global variables that have 
       been mutated to the infered behavior contract of the given function.
-      Todo: The name is missleading because this function add [\valid_read] as well.*)
+      Todo: The name is missleading because this function add [\valid_read] as well.
+      Todo: Rework program to not emit both [\valid] and [\valid_read] for the same variable since [\valid] implies [\valid_read].*)
   let emit_req_valid new_kf filling_actions =
     Isp_local_states.Global_Vars.Mutated_Global_Vars.iter (fun _name lv ->
         let t : term = Isp_utils.lval_to_address_term lv in
