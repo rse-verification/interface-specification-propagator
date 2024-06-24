@@ -2,6 +2,8 @@
 
 Note that this plugin is in an experimental state.
 
+This plugin is licensed under the GPL2 license, see license headers in source code files and the full license in the LICENSE file.
+
 ## PURPOSE
 
 Semantic inference of auxiliary annotations in Frama-C. Frama-C is a software suite for analysis of C code. Importantly, Frama-C offers powerful value analysis and weakest precondition plugins over C source code. 
