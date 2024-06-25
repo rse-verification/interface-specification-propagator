@@ -40,6 +40,15 @@ For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
 - [Improving the Synthesis of Annotations for Partially Automated Deductive Verification](https://kth.diva-portal.org/smash/get/diva2:1801578/FULLTEXT01.pdf) by Hovig Manjikian
 
+## Limitations
+
+C language limitations:
+* Does currently not support complex expressions for indexing arrays, pointer arithmetic other than array indexing, nested pointers, or nested structs.
+* Does not support programs with local static variables.
+
+Regarding ACSL, support exist for requires, ensures, and assign clauses, as well as the behavior construct. Supports most ACSL operators (implication, nested inequalities, etc.), and the built-in predicates \valid and \valid_read.
+Other ACSL constructs and built-ins than the above are generally not supported currently.
+
 ## Main authors
 - Daniel Skantz
 - Hovig Manjikian
