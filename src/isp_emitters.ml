@@ -34,10 +34,10 @@ module type Behavior = sig
 end
 
 module Behavior = struct
-  let current_behavior = ref (Cil.mk_behavior ~name:"isp_generated" ())
+  let current_behavior = ref (Cil.mk_behavior ())
 
   let reset_current_behavior () =
-    current_behavior := Cil.mk_behavior ~name:"isp_generated" ();
+    current_behavior := Cil.mk_behavior ();
     p_debug "· Reseted current_behavior."
 
   let get_current_behavior () = !current_behavior
@@ -57,14 +57,6 @@ module Auxiliary = struct
     Emitter.create "Auxiliary Specification Emitter" [ Emitter.Funspec ]
       ~correctness:[] ~tuning:[]
 
-  (** Adds assumes [\true] to the infered behavior contract of the given function. *)
-  let emit_assumes_true new_kf filling_actions =
-    Queue.add
-      (fun () ->
-        Annotations.add_assumes emitter new_kf ~behavior:"isp_generated"
-          [ Logic_const.new_predicate Logic_const.ptrue ])
-      filling_actions;
-    p_debug "·· Emitted: assumes \\true." ~level:2
 
   (** Adds required [\valid_read] of the accessed global variables which have
       not been mutated to the infered behavior contract of the given function. *)
@@ -80,7 +72,7 @@ module Auxiliary = struct
 
           Queue.add
             (fun () ->
-              Annotations.add_requires emitter new_kf ~behavior:"isp_generated"
+              Annotations.add_requires emitter new_kf
                 [ ip ])
             filling_actions;
 
@@ -103,8 +95,7 @@ module Auxiliary = struct
 
               Queue.add
                 (fun () ->
-                  Annotations.add_requires emitter new_kf
-                    ~behavior:"isp_generated" [ ip ])
+                  Annotations.add_requires emitter new_kf [ ip ])
                 filling_actions;
 
               p_debug "·· Emitted: require \\valid_read %a"
@@ -129,7 +120,7 @@ module Auxiliary = struct
             Queue.add
               (fun () ->
                 Annotations.add_requires emitter new_kf
-                  ~behavior:"isp_generated" ip_list)
+                   ip_list)
               filling_actions;
             p_debug "·· Emitted: require %a" Printer.pp_identified_predicate
               ipvr ~level:2;
@@ -156,7 +147,7 @@ module Auxiliary = struct
         let ip_list = [ ipvr; ipv ] in
         Queue.add
           (fun () ->
-            Annotations.add_requires emitter new_kf ~behavior:"isp_generated"
+            Annotations.add_requires emitter new_kf
               ip_list)
           filling_actions;
         p_debug "·· Emitted: require %a" Printer.pp_identified_predicate ipvr
@@ -176,7 +167,7 @@ module Auxiliary = struct
       Queue.add
         (fun () ->
           Annotations.add_assigns ~keep_empty:false emitter new_kf
-            ~behavior:"isp_generated" (Writes []))
+             (Writes []))
         filling_actions;
       p_debug "·· Emitted: assignes \\nothing" ~level:2)
     else
@@ -186,7 +177,6 @@ module Auxiliary = struct
         Queue.add
           (fun () ->
             Annotations.add_assigns ~keep_empty:false emitter new_kf
-              ~behavior:"isp_generated"
               (Writes [ (it, FromAny) ]))
           filling_actions;
         p_debug "·· Emitted: assignes %a" Printer.pp_identified_term it ~level:2
@@ -265,7 +255,7 @@ module Auxiliary = struct
             let tk_ip_list = List.map (fun ip -> (Normal, ip)) ip_list in
             Queue.add
               (fun () ->
-                Annotations.add_ensures emitter new_kf ~behavior:"isp_generated"
+                Annotations.add_ensures emitter new_kf
                   tk_ip_list)
               filling_actions;
             p_debug "·· Emitted: ensures for %a." Printer.pp_term t ~level:2
@@ -273,7 +263,7 @@ module Auxiliary = struct
             Queue.add
               (fun () ->
                 Annotations.add_requires emitter new_kf
-                  ~behavior:"isp_generated" ip_list)
+                   ip_list)
               filling_actions
         | _ ->
             failwith "Isp: Only Ensures and Requires are currently implemented!"
@@ -371,7 +361,6 @@ module Auxiliary = struct
   let emit exp_opt req new_kf filling_actions =
     p_debug "· Start emission process for functions %s"
       (Kernel_function.get_name new_kf);
-    emit_assumes_true new_kf filling_actions;
     emit_req_valid_read new_kf filling_actions;
     emit_req_valid new_kf filling_actions;
     emit_req_for_function_parameters new_kf filling_actions;
