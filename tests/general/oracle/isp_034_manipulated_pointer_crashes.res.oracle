@@ -25,9 +25,9 @@
 [kernel] Current source was: isp_034_manipulated_pointer_crashes.c:10
   The full backtrace is:
   Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Isp__Isp_local_states.Utils.process_expression.(fun) in file "src/isp_local_states.ml", line 397, characters 18-147
+  Called from Isp__Isp_local_states.Utils.process_expression.(fun) in file "src/isp_local_states.ml", line 418, characters 18-147
   Called from Stdlib__List.iter in file "list.ml", line 110, characters 12-15
-  Called from Isp__Isp_visitor.interface_specifications_propagator#vstmt_aux in file "src/isp_visitor.ml", line 160, characters 16-126
+  Called from Isp__Isp_visitor.interface_specifications_propagator#vstmt_aux in file "src/isp_visitor.ml", line 181, characters 16-126
   Called from Frama_c_kernel__Visitor.internal_generic_frama_c_visitor#vstmt in file "src/kernel_services/visitors/visitor.ml", line 73, characters 16-35
   Called from Frama_c_kernel__Cil.doVisit in file "src/kernel_services/ast_queries/cil.ml", line 1292, characters 15-31
   Called from Frama_c_kernel__Cil.visitCilStmt in file "src/kernel_services/ast_queries/cil.ml", line 2410, characters 4-103
@@ -47,7 +47,7 @@
   Called from Frama_c_kernel__Visitor.visitFramacFileCopy in file "src/kernel_services/visitors/visitor.ml" (inlined), line 856, characters 32-68
   Called from Frama_c_kernel__File.init_project_from_visitor in file "src/kernel_services/ast_queries/file.ml", line 1846, characters 12-43
   Called from Frama_c_kernel__File.create_project_from_visitor in file "src/kernel_services/ast_queries/file.ml", line 1881, characters 2-43
-  Called from Isp__Isp_visitor.execute_isp in file "src/isp_visitor.ml", line 305, characters 4-105
+  Called from Isp__Isp_visitor.execute_isp in file "src/isp_visitor.ml", line 326, characters 4-105
   Called from Stdlib__Queue.iter.iter in file "queue.ml", line 121, characters 6-15
   Called from Frama_c_boot__Boot.play_analysis in file "src/init/boot/boot.ml", line 36, characters 4-20
   Called from Frama_c_kernel__Cmdline.play_in_toplevel_one_shot in file "src/kernel_services/cmdline_parameters/cmdline.ml", line 850, characters 2-9
