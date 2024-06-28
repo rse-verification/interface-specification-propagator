@@ -29,21 +29,19 @@
 int X;
 int Y;
 int Z;
-/*@ behavior interface_spec:
-      assumes \true;
-      requires \valid_read(&X);
-      requires \valid_read(&Z);
-      requires \valid(&Z);
-      requires X ∈ {3, 4, 5, 6, 7};
-      assigns Z;
+/*@ requires X ∈ {3, 4, 5, 6, 7};
+    requires \valid_read(&Z);
+    requires \valid(&Z);
+    requires \valid_read(&X);
+    ensures Z ∈ {3, 4, 5, 12, 14};
+    assigns Z;
     
-    behavior isp_generated:
+    behavior interface_spec:
       assumes \true;
-      requires X ∈ {3, 4, 5, 6, 7};
+      requires \valid_read(&X);
       requires \valid_read(&Z);
       requires \valid(&Z);
-      requires \valid_read(&X);
-      ensures Z ∈ {3, 4, 5, 12, 14};
+      requires X ∈ {3, 4, 5, 6, 7};
       assigns Z;
  */
 void main(void)

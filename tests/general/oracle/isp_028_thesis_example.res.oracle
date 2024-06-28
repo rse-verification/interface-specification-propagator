@@ -31,15 +31,13 @@ enum __anonenum_VEHICLE_STATE_1 {
 };
 int WHEEL_SPEED;
 int STATE;
-/*@ behavior isp_generated:
-      assumes \true;
-      requires WHEEL_SPEED ≥ 0;
-      requires WHEEL_SPEED ≤ 400;
-      requires \valid_read(&STATE);
-      requires \valid(&STATE);
-      requires \valid_read(&WHEEL_SPEED);
-      ensures STATE ∈ {0, 1};
-      assigns STATE;
+/*@ requires WHEEL_SPEED ≥ 0;
+    requires WHEEL_SPEED ≤ 400;
+    requires \valid_read(&STATE);
+    requires \valid(&STATE);
+    requires \valid_read(&WHEEL_SPEED);
+    ensures STATE ∈ {0, 1};
+    assigns STATE;
  */
 void update_state(void)
 {
@@ -47,22 +45,20 @@ void update_state(void)
   return;
 }
 
-/*@ behavior interface_spec:
+/*@ requires WHEEL_SPEED ≥ 0;
+    requires WHEEL_SPEED ≤ 400;
+    requires \valid_read(&STATE);
+    requires \valid(&STATE);
+    requires \valid_read(&WHEEL_SPEED);
+    ensures STATE ∈ {0, 1};
+    assigns STATE;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&WHEEL_SPEED);
       requires \valid_read(&STATE);
       requires \valid(&STATE);
       requires WHEEL_SPEED ∈ (0 .. 400);
-      ensures STATE ∈ {0, 1};
-      assigns STATE;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires WHEEL_SPEED ≥ 0;
-      requires WHEEL_SPEED ≤ 400;
-      requires \valid_read(&STATE);
-      requires \valid(&STATE);
-      requires \valid_read(&WHEEL_SPEED);
       ensures STATE ∈ {0, 1};
       assigns STATE;
  */
