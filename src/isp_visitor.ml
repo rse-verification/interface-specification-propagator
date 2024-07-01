@@ -81,7 +81,7 @@ class interface_specifications_propagator _ep prj =
           if not (Eva.Results.is_called kf) then (
             p_warning "Unreachable function: %s" fd.svar.vname;
             JustCopy)
-          (* else if fd.svar.vname = ep then 
+          (* else if fd.svar.vname = ep then
             (
               p_debug "Glob.";
               JustCopy) *)
@@ -319,7 +319,7 @@ let execute_isp () =
     else Isp_options.EntryPoint.get ()
   in
   p_result "Execute Eva with entry point \"%s\"" ep;
-  Globals.set_entry_point ep true;  
+  Globals.set_entry_point ep true;
   Eva.Analysis.compute ();
   p_result "Eva analysis is completed.";
   let propagated_acsl =
@@ -328,4 +328,9 @@ let execute_isp () =
   in
   if Isp_options.Print.get () then (
     p_result "The transformed source code:";
-    File.pretty_ast ~prj:propagated_acsl ())
+    File.pretty_ast ~prj:propagated_acsl ());
+  let fname = Isp_options.PrintFile.get () in
+  if (not(fname = "")) then (
+    File.pretty_ast ~prj:propagated_acsl
+      ~fmt:(Format.formatter_of_out_channel (open_out (fname))) ()
+  )
