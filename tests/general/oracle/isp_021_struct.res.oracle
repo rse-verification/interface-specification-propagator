@@ -32,7 +32,20 @@ struct __anonstruct_MY_STRUCT_1 {
 typedef struct __anonstruct_MY_STRUCT_1 MY_STRUCT;
 int X;
 MY_STRUCT Y;
-/*@ behavior interface_spec:
+/*@ requires X ≡ 1;
+    requires \valid_read(&Y.c);
+    requires \valid(&Y.c);
+    requires \valid_read(&Y.a);
+    requires \valid(&Y.a);
+    requires \valid_read(&Y.b);
+    requires \valid(&Y.b);
+    requires \valid_read(&X);
+    ensures Y.c ≡ 3;
+    ensures Y.a ≡ 1;
+    ensures Y.b ≡ 2;
+    assigns Y.b, Y.a, Y.c;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&X);
       requires \valid_read(&Y.a);
@@ -44,21 +57,6 @@ MY_STRUCT Y;
       requires X ≡ 1;
       ensures Y.a ≡ 1 ∧ Y.b ≡ 2 ∧ Y.c ≡ 3;
       assigns Y.a, Y.b, Y.c;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires X ≡ 1;
-      requires \valid_read(&Y.c);
-      requires \valid(&Y.c);
-      requires \valid_read(&Y.a);
-      requires \valid(&Y.a);
-      requires \valid_read(&Y.b);
-      requires \valid(&Y.b);
-      requires \valid_read(&X);
-      ensures Y.c ≡ 3;
-      ensures Y.a ≡ 1;
-      ensures Y.b ≡ 2;
-      assigns Y.b, Y.a, Y.c;
  */
 void main(void)
 {
