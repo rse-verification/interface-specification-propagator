@@ -289,44 +289,23 @@ module Auxiliary = struct
   let construct_result_term_field typ fi =
     Logic_const.term (TLval(TResult typ, TField (fi, TNoOffset))) (Ctype typ)
 
-  let emit_struct_result_expression e lhost req new_kf filling_actions =
-    match Cil.typeOf e with
-    | TComp (compinfo, _) as styp ->
+  let rec emit_results_for_lvalue lvalue req new_kf filling_actions  level =
+    match Cil.typeOfLval lvalue with
+    | TComp (compinfo, _) ->
+        let (lhost, offset) = lvalue in
         List.iter
-          (fun fi ->
-            let expr = {e with enode = Lval (lhost, Field (fi, NoOffset))} in
-            let result_term = construct_result_term_field styp fi in
-            let eva_result = Eva.Results.eval_exp expr req in
-            emit_eva_result_of_term Ensures result_term (Eva.Results.as_ival eva_result) new_kf filling_actions)
+          (fun fieldinfo ->
+            emit_results_for_lvalue (lhost, Field (fieldinfo, offset)) req new_kf filling_actions (level+1))
           (Option.value compinfo.cfields ~default:[])
-    | _ ->  emit_simple_result_expression e req new_kf filling_actions
-(*
-    let rec emit_results_for_lvalue lvalue req new_kf filling_actions =
-      match Cil.typeOfLval lvalue with
-      | TComp (compinfo, _) ->
-          List.iter
-            (fun fieldinfo ->
-              emit_results_for_lvalue (lhost, Field (fieldinfo, offset)) req new_kf filling_actions)
-            (Option.value compinfo.cfields ~default:[])
-      | lValueType -> 
-        let (_, offset) = lvalue in
-        let trm = Logic_const.term (TLval(TResult lValueType, Logic_utils.offset_to_term_offset offset)) (Ctype lValueType) in
-        let eva_result = Eva.Results.eval_lval lvalue req in
-        emit_eva_result_of_term Ensures trm (Eva.Results.as_ival eva_result) new_kf filling_actions
-*)
-    let rec emit_results_for_lvalue lvalue req new_kf filling_actions =
-      match Cil.typeOfLval lvalue with
-      | TComp (compinfo, _) ->
-          let (lhost, offset) = lvalue in
-          List.iter
-            (fun fieldinfo ->
-              emit_results_for_lvalue (lhost, Field (fieldinfo, offset)) req new_kf filling_actions)
-            (Option.value compinfo.cfields ~default:[])
-      | lValueType -> 
-        let (_, offset) = lvalue in
-        let trm = Logic_const.term (TLval(TResult lValueType, Logic_utils.offset_to_term_offset offset)) (Ctype lValueType) in
-        let eva_result = Eva.Results.eval_lval lvalue req in
-        emit_eva_result_of_term Ensures trm (Eva.Results.as_ival eva_result) new_kf filling_actions
+    | _ ->
+      begin
+        match lvalue with
+        | (Var lhost, offset) ->
+            let trm = Logic_const.term (TLval (TResult lhost.vtype, Logic_utils.offset_to_term_offset offset)) (Ctype lhost.vtype) in
+            let eva_result = Eva.Results.eval_lval lvalue req in
+            emit_eva_result_of_term Ensures trm (Eva.Results.as_ival eva_result) new_kf filling_actions;
+        | _ -> failwith "Expected 'Var' lhost when emitting results for lvalue."
+      end
 
   (** Add ensures for the result (when exist) to the infered behavior contract
       of the given function.
@@ -335,7 +314,7 @@ module Auxiliary = struct
     match exp_opt with
     | None -> ()
     | Some ({enode = Lval lvalue; _})->
-        emit_results_for_lvalue lvalue req new_kf filling_actions
+        emit_results_for_lvalue lvalue req new_kf filling_actions 0
     | Some (expr) -> 
         emit_simple_result_expression expr req new_kf filling_actions
 
