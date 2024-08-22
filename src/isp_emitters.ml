@@ -289,6 +289,37 @@ module Auxiliary = struct
   let construct_result_term_field typ fi =
     Logic_const.term (TLval(TResult typ, TField (fi, TNoOffset))) (Ctype typ)
 
+  let rec find_offsets typ =
+    match typ with
+    | TComp (compinfo, _) ->
+        List.flatten 
+          (List.map
+            (fun fieldinfo ->
+              p_debug "··· fieldinfo %s" fieldinfo.forig_name ~level:0;
+              let o = find_offsets fieldinfo.ftype in
+              List.map (fun f -> Field (fieldinfo, f)) o)
+            (Option.value compinfo.cfields ~default:[]))
+    | _ -> [NoOffset]
+
+
+  let emit_struct_result_expression e req new_kf filling_actions =
+    match Cil.typeOf e with
+    | TComp _ as styp->
+        let offsets = find_offsets styp in
+        p_debug "··· number of found offsets %i" (List.length offsets) ~level:0;
+        List.iter 
+          (fun o ->
+            (*let ofst = List.fold_right (fun fi a -> Field (fi, a)) o NoOffset in*)
+            let term = Logic_const.term (TLval(TResult styp, Logic_utils.offset_to_term_offset o)) (Ctype styp) in
+            let eva_result = Eva.Results.eval_exp e req in
+            emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions)
+          offsets
+    | typ ->
+      p_debug "Non-TComp type" ~level:0;
+      let term = Logic_const.term (TLval(TResult typ, TNoOffset)) (Ctype typ) in
+      let eva_result = Eva.Results.eval_exp e req in
+      emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions
+      
   let rec emit_results_for_lvalue lvalue req new_kf filling_actions  level =
     match Cil.typeOfLval lvalue with
     | TComp (compinfo, _) ->
@@ -313,10 +344,8 @@ module Auxiliary = struct
   let emit_ensures_for_results exp_opt req new_kf filling_actions =
     match exp_opt with
     | None -> ()
-    | Some ({enode = Lval lvalue; _})->
-        emit_results_for_lvalue lvalue req new_kf filling_actions 0
-    | Some (expr) -> 
-        emit_simple_result_expression expr req new_kf filling_actions
+    | Some ({enode = Lval (_, NoOffset); _} as e) -> emit_struct_result_expression e req new_kf filling_actions
+    | Some e -> emit_simple_result_expression e req new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
     let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
