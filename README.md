@@ -1,5 +1,7 @@
 ## FIT
 
+[![Build Status](https://github.com/rse-verification/interface-specification-propagator/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/rse-verification/interface-specification-propagator/actions/workflows/build.yml)
+
 Note that this plugin is in an experimental state.
 
 This plugin is licensed under the GPL2 license, see license headers in source code files and the full license in the LICENSE file.
