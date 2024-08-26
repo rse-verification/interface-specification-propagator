@@ -265,6 +265,7 @@ module Auxiliary = struct
   let emit_some_for_lvalue spec_type lvalue to_term req new_kf filling_actions =
     let rec find_field_offsets typ =
       match typ with
+    | TNamed _ -> failwith "FOUND NAMED TYPE"
       | TComp (compinfo, _) ->
           List.flatten 
             (List.map
@@ -275,12 +276,20 @@ module Auxiliary = struct
       | _ -> [NoOffset]
     in
     match Cil.typeOfLval lvalue with
+    | TNamed _ -> failwith "FOUND NAMED TYPE"
     | TComp _ as styp->
         let (lhost, _) = lvalue in
         let offsets = find_field_offsets styp in
         p_debug "···· number of found offsets %i" (List.length offsets) ~level:0;
         List.iter 
           (fun o ->
+            let q = match o with
+            | Field (fi, _) -> 
+              p_debug "···· offsets %a" Printer.pp_field fi ~level:0;
+            | _ -> 
+              p_debug "···· dummy"  ~level:0;
+            in
+            q |> ignore;
             let term = to_term (lhost, o) in
             let eva_result = Eva.Results.eval_lval (lhost, o) req in
             emit_eva_result_of_term spec_type term (Eva.Results.as_ival eva_result) new_kf filling_actions)
@@ -303,9 +312,7 @@ module Auxiliary = struct
       (fun lv ->
         p_debug "··· Emitting ensures for pointer argument %a." Printer.pp_lval
           lv ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        let t = Isp_utils.lval_to_term lv in
-        emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
+        emit_some_for_lvalue Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
 
   let emit_simple_result_expression e req new_kf filling_actions =
@@ -320,6 +327,7 @@ module Auxiliary = struct
     let to_term lvalue =
       let typ = Cil.typeOfLval lvalue in
       let (_, offset) = lvalue in
+       p_debug "··· Emitting ensures for result expression %a." Printer.pp_lval lvalue ~level:3;
       Logic_const.term (TLval(TResult typ, Logic_utils.offset_to_term_offset offset)) (Ctype typ)
     in
     match exp_opt with
