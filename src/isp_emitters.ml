@@ -51,10 +51,10 @@ module Auxiliary = struct
     Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
         if not (Isp_local_states.Global_Vars.Mutated_Global_Vars.contains name)
         then (
-          let t : term = Isp_utils.lval_to_address_term lv in
+          let term = Isp_utils.lval_to_address_term lv in
           let ip : identified_predicate =
             Logic_const.new_predicate
-              (Logic_const.pvalid_read (BuiltinLabel Here, t))
+              (Logic_const.pvalid_read (BuiltinLabel Here, term))
           in
 
           Queue.add
@@ -262,14 +262,41 @@ module Auxiliary = struct
          annotations are created for this term."
         Printer.pp_term term
 
+  let emit_some_for_lvalue spec_type lvalue to_term req new_kf filling_actions =
+    let rec find_field_offsets typ =
+      match typ with
+      | TComp (compinfo, _) ->
+          List.flatten 
+            (List.map
+              (fun fieldinfo ->
+                let o = find_field_offsets fieldinfo.ftype in
+                List.map (fun f -> Field (fieldinfo, f)) o)
+              (Option.value compinfo.cfields ~default:[]))
+      | _ -> [NoOffset]
+    in
+    match Cil.typeOfLval lvalue with
+    | TComp _ as styp->
+        let (lhost, _) = lvalue in
+        let offsets = find_field_offsets styp in
+        p_debug "···· number of found offsets %i" (List.length offsets) ~level:0;
+        List.iter 
+          (fun o ->
+            let term = to_term (lhost, o) in
+            let eva_result = Eva.Results.eval_lval (lhost, o) req in
+            emit_eva_result_of_term spec_type term (Eva.Results.as_ival eva_result) new_kf filling_actions)
+          offsets
+    | _ ->
+      p_debug "···· non-TComp type" ~level:3;
+      let term = to_term lvalue in
+      let eva_result = Eva.Results.eval_lval lvalue req in
+      emit_eva_result_of_term spec_type term (Eva.Results.as_ival eva_result) new_kf filling_actions
+
   (** Add ensures for the mutated global variables to the infered behavior contract
       of the given function. *)
   let emit_ensures_for_m_g_v req new_kf filling_actions =
     Isp_local_states.Global_Vars.Mutated_Global_Vars.iter (fun name lv ->
         p_debug "··· Emitting ensures for global variable %s" name ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        let t = Isp_utils.lval_to_term lv in
-        emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
+        emit_some_for_lvalue Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
 
   let emit_ensures_for_ptr_func_args req new_kf filling_actions =
     List.iter
@@ -286,43 +313,18 @@ module Auxiliary = struct
     let eva_result = Eva.Results.eval_exp e req in
     emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions
 
-  let rec find_field_offsets typ =
-    match typ with
-    | TComp (compinfo, _) ->
-        List.flatten 
-          (List.map
-            (fun fieldinfo ->
-              let o = find_field_offsets fieldinfo.ftype in
-              List.map (fun f -> Field (fieldinfo, f)) o)
-            (Option.value compinfo.cfields ~default:[]))
-    | _ -> [NoOffset]
-
-
-  let emit_struct_result_expression lvalue req new_kf filling_actions =
-    match Cil.typeOfLval lvalue with
-    | TComp _ as styp->
-        let (lhost, _) = lvalue in
-        let offsets = find_field_offsets styp in
-        p_debug "···· number of found offsets %i" (List.length offsets) ~level:0;
-        List.iter 
-          (fun o ->
-            let term = Logic_const.term (TLval(TResult styp, Logic_utils.offset_to_term_offset o)) (Ctype styp) in
-            let eva_result = Eva.Results.eval_lval (lhost, o) req in
-            emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions)
-          offsets
-    | typ ->
-      p_debug "···· non-TComp type" ~level:3;
-      let term = Logic_const.term (TLval(TResult typ, TNoOffset)) (Ctype typ) in
-      let eva_result = Eva.Results.eval_lval lvalue req in
-      emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions
-  
   (** Add ensures for the result (when exist) to the infered behavior contract
       of the given function.
       Todo: Factor out the pattern matching. *)
   let emit_ensures_for_results exp_opt req new_kf filling_actions =
+    let to_term lvalue =
+      let typ = Cil.typeOfLval lvalue in
+      let (_, offset) = lvalue in
+      Logic_const.term (TLval(TResult typ, Logic_utils.offset_to_term_offset offset)) (Ctype typ)
+    in
     match exp_opt with
     | None -> ()
-    | Some ({enode = Lval lvalue; _}) -> emit_struct_result_expression lvalue req new_kf filling_actions
+    | Some ({enode = Lval lvalue; _}) -> emit_some_for_lvalue Ensures lvalue to_term req new_kf filling_actions
     | Some e -> emit_simple_result_expression e req new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
@@ -350,9 +352,7 @@ module Auxiliary = struct
     let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
     Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
         p_debug "··· Emitting requires for accessed global variable %s." name ~level:3;
-        let t = Isp_utils.lval_to_term lv in
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        emit_eva_result_of_term Requires t eva_result new_kf filling_actions)
+        emit_some_for_lvalue Requires lv Isp_utils.lval_to_term req new_kf filling_actions)
 
   let emit_function_contract new_kf filling_actions =
     Queue.add
