@@ -20,7 +20,6 @@ struct StructB create_struct() {
     return ls;
 }
 
-/*
 struct StructB get_struct(){
     gs.f1.f4 = 1.0f;
     gs.f1.f3 = 2;
@@ -37,12 +36,11 @@ void init_struct(struct StructB *s){
 void set_struct(struct StructB a) {
     gs = a;
 }
-*/
 
 void main()
 {
     struct StructB ls;
     ls = create_struct();
-//    set_struct(ls);
-//    ls = get_struct();
+    set_struct(ls);
+    ls = get_struct();
 }
