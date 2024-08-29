@@ -178,7 +178,7 @@ module type Fun_Access_Mutate = sig
   val clear : unit -> unit
 end
 
-(** Contains lists of the mutated and accessed global variables fo each function. *)
+(** Contains lists of the mutated and accessed global variables of each function. *)
 module Fun_Access_Mutate : Fun_Access_Mutate = struct
   let hashtable : (kernel_function, global_variables_in_fun) Hashtbl.t =
     Hashtbl.create 200
@@ -353,6 +353,8 @@ module Utils = struct
   let add_function_access_and_mutations kf =
     (match Fun_Access_Mutate.get_opt kf with
     | None ->
+        (* TODO: This warning seems to be incorrect. The function is not unknown,
+           it just happens to NOT access or mutate any global variables. *)
         p_warning "A function call to an unknown function: %s"
           (Kernel_function.get_name kf)
     | Some access_and_mutations ->

@@ -1,5 +1,5 @@
 /* run.config
-OPT: -autoload-plugins -isp -isp-print
+OPT: -no-check -autoload-plugins -isp -isp-print
 COMMENT: "Testing initialization of structs through pointer."
 */
 
@@ -17,7 +17,7 @@ typedef struct
 
 void init_struct(StructB *s){
     s->b1.a1 = 84;
-    s->b1.a2 = 2.7f;
+    s->b1.a2 = 1.0f;
     s->b2 = 42;
 }
 

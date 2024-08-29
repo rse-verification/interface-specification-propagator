@@ -287,7 +287,7 @@ module Auxiliary = struct
     | TComp _ as styp->
         let (lhost, _) = lvalue in
         let offsets = find_field_offsets styp in
-        p_debug "···· number of found offsets %i" (List.length offsets) ~level:3;
+        p_debug "···· number of found offsets %i" (List.length offsets) ~level:4;
         List.iter 
           (fun o ->
             let term = to_term (lhost, o) in
@@ -295,7 +295,7 @@ module Auxiliary = struct
             emit_eva_result_of_term spec_type term eva_result new_kf filling_actions)
           offsets
     | _ ->
-      p_debug "···· non TComp type" ~level:3;
+      p_debug "···· non TComp type" ~level:4;
       let term = to_term lvalue in
       let eva_result = Isp_utils.get_eva_analysis_for_lval req lvalue in
       emit_eva_result_of_term spec_type term eva_result new_kf filling_actions
