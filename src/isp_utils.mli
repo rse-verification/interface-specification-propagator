@@ -55,3 +55,8 @@ val get_lvals_with_const_index :
   Cil_types.lval -> Eva.Results.request -> (string * Cil_types.lval) list
 (** Converts a lval of an array with a lval index to a list of [(name, lval)]
     with a constant index *)
+
+val find_field_offsets : Cil_types.typ -> Cil_types.offset list
+(** Generates a list of offsets for all fields in a struct recursively, i.e.
+    if a field is itself a struct, offsets for the fields in that structure
+    will also be generated. *)

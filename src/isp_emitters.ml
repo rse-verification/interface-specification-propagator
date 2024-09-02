@@ -277,32 +277,18 @@ module Auxiliary = struct
       contract of the given function. 'to_term' is a function that converts
       an lval into a term. *)
   let emit_lval_spec spec_type lvalue to_term req new_kf filling_actions =
-    let rec find_field_offsets typ =
-      match Cil.unrollType typ with
-      | TNamed _ -> 
-        (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
-        failwith "Trying to emit annotations for non-unrolled type."
-      | TComp (compinfo, _) ->
-          List.flatten 
-            (List.map
-              (fun fieldinfo ->
-                let o = find_field_offsets fieldinfo.ftype in
-                List.map (fun f -> Field (fieldinfo, f)) o)
-              (Option.value compinfo.cfields ~default:[]))
-      | _ -> [NoOffset]
-    in
     match Cil.unrollType (Cil.typeOfLval lvalue) with
     | TNamed _ -> 
       (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
       failwith "Trying to emit annotations for non-unrolled type."
     | TComp _ as styp->
         let (lhost, _) = lvalue in
-        let offsets = find_field_offsets styp in
+        let offsets = Isp_utils.find_field_offsets styp in
         p_debug "···· number of found offsets %i" (List.length offsets) ~level:4;
         List.iter 
-          (fun o ->
-            let term = to_term (lhost, o) in
-            let eva_result = Isp_utils.get_eva_analysis_for_lval req (lhost, o) in
+          (fun offset ->
+            let term = to_term (lhost, offset) in
+            let eva_result = Isp_utils.get_eva_analysis_for_lval req (lhost, offset) in
             emit_eva_result_of_term spec_type term eva_result new_kf filling_actions)
           offsets
     | _ ->
