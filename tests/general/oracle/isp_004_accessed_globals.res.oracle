@@ -2,11 +2,8 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   1 function analyzed (out of 1): 100% coverage.

@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   DB[0..4] ∈ [--..--]
   X ∈ [--..--]
@@ -23,7 +21,6 @@
 [eva:alarm] isp_030_switch.c:24: Warning: 
   function main, behavior interface_spec: precondition X ∈
                                                        {RPM, SPEED, PRESSURE} got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   2 functions analyzed (out of 2): 100% coverage.
@@ -37,9 +34,9 @@
   ----------------------------------------------------------------------------
 [isp] Eva analysis is completed.
 [isp] Warning: Arguments of Enum type (PARAMETER) are not implemented!
-[isp] Warning: Unreachable statement: case (PARAMETER)TEMPERATURE: read_db(TEMPERATURE);
+[isp] Warning: Unreachable statement: case TEMPERATURE: read_db(TEMPERATURE);
 [isp] Warning: Unreachable statement: break;
-[isp] Warning: Unreachable statement: case (PARAMETER)HUMIDITY: read_db(HUMIDITY);
+[isp] Warning: Unreachable statement: case HUMIDITY: read_db(HUMIDITY);
 [isp] Warning: Unreachable statement: break;
 [isp] Warning: Unreachable statement: default: break;
 [isp] The transformed source code:
@@ -101,15 +98,15 @@ int read_db(PARAMETER p)
 void main(void)
 {
   switch (X) {
-    case (PARAMETER)RPM: read_db(RPM);
+    case RPM: read_db(RPM);
     break;
-    case (PARAMETER)SPEED: read_db(SPEED);
+    case SPEED: read_db(SPEED);
     break;
-    case (PARAMETER)TEMPERATURE: read_db(TEMPERATURE);
+    case TEMPERATURE: read_db(TEMPERATURE);
     break;
-    case (PARAMETER)HUMIDITY: read_db(HUMIDITY);
+    case HUMIDITY: read_db(HUMIDITY);
     break;
-    case (PARAMETER)PRESSURE: read_db(PRESSURE);
+    case PRESSURE: read_db(PRESSURE);
     break;
     default: break;
   }
