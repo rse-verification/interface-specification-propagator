@@ -31,12 +31,10 @@ struct __anonstruct_StructB_2 {
    int b2 ;
 };
 typedef struct __anonstruct_StructB_2 StructB;
-/*@ behavior isp_generated:
-      assumes \true;
-      ensures \result.b2 ≡ 23;
-      ensures \result.b1.a2 ≡ 4.;
-      ensures \result.b1.a1 ≡ 17;
-      assigns \nothing;
+/*@ ensures \result.b2 ≡ 23;
+    ensures \result.b1.a2 ≡ 4.;
+    ensures \result.b1.a1 ≡ 17;
+    assigns \nothing;
  */
 StructB create_struct(void)
 {
@@ -47,9 +45,7 @@ StructB create_struct(void)
   return ls;
 }
 
-/*@ behavior isp_generated:
-      assumes \true;
-      assigns \nothing; */
+/*@ assigns \nothing; */
 void main(void)
 {
   StructB ls;
