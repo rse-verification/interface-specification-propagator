@@ -312,26 +312,6 @@ module Auxiliary = struct
         emit_lval_spec Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
 
-  let emit_simple_result_expression e req new_kf filling_actions =
-    let t = Cil.typeOf e |> Logic_const.tresult in
-    let eva_result = Eva.Results.eval_exp e req in
-    emit_eva_result_of_term Ensures t (Eva.Results.as_ival eva_result) new_kf filling_actions
-
-  let construct_result_term_field typ fi =
-    Logic_const.term (TLval(TResult typ, TField (fi, TNoOffset))) (Ctype typ)
-
-  let emit_struct_result_expression e lhost req new_kf filling_actions =
-    (match Cil.typeOf e with
-    | TComp (compinfo, _) as styp ->
-        List.iter
-        (fun fi ->
-          let expr = {e with enode = Lval (lhost, Field (fi, NoOffset))} in
-          let eva_result = Eva.Results.eval_exp expr req in
-          let result_term = construct_result_term_field styp fi in
-          emit_eva_result_of_term Ensures result_term (Eva.Results.as_ival eva_result) new_kf filling_actions)
-        (Option.value compinfo.cfields ~default:[]);
-    | _ ->  emit_simple_result_expression e req new_kf filling_actions;)
-
   (** Add ensures for the result (when exist) to the infered behavior contract
       of the given function. *)
   let emit_ensures_for_results exp_opt req new_kf filling_actions =
