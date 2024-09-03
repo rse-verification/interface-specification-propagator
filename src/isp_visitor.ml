@@ -94,7 +94,7 @@ class interface_specifications_propagator _ep prj =
             p_debug "· Adding arguments to Visited_function_arguments.";
             List.iter
               (fun vi ->
-                match vi.vtype with
+                match unrollType vi.vtype with
                 | TPtr _ ->
                     Isp_local_states.Visited_function_arguments.add_ptr_arg
                       vi.vid;
@@ -102,14 +102,14 @@ class interface_specifications_propagator _ep prj =
                       "·· Id (%d) of pointer argument %a added to \
                        Visited_function_arguments."
                       vi.vid Printer.pp_varinfo vi ~level:2
-                | TInt _ | TFloat _ ->
+                | TInt _ | TFloat _ | TComp _ ->
                     Isp_local_states.Visited_function_arguments.add_non_ptr_arg
                       vi.vid;
                     p_debug
                       "·· Id (%d) of int/float argument %a added to \
                        Visited_function_arguments."
-                      vi.vid Printer.pp_varinfo vi ~level:2
-                | TEnum _ | TNamed ({ ttype = TEnum _ }, _) ->
+                      vi.vid Printer.pp_varinfo vi ~level:2                  
+                | TEnum _ ->
                     p_warning "Arguments of Enum type (%a) are not implemented!"
                       Printer.pp_typ vi.vtype
                 | _ ->
@@ -206,7 +206,7 @@ class interface_specifications_propagator _ep prj =
                             let kf = Globals.Functions.find_by_name vi.vname in
                             Isp_local_states.Utils
                             .add_function_access_and_mutations kf
-                        | _ -> p_warning "Uncknown type of Var")
+                        | _ -> p_warning "Unknown type of Var")
                     | Mem _, _ ->
                         p_warning "The Lval is of type Mem. (not implemented).")
                 | _ ->

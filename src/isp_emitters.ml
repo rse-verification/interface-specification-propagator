@@ -64,10 +64,10 @@ module Auxiliary = struct
     Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
         if not (Isp_local_states.Global_Vars.Mutated_Global_Vars.contains name)
         then (
-          let t : term = Isp_utils.lval_to_address_term lv in
+          let term = Isp_utils.lval_to_address_term lv in
           let ip : identified_predicate =
             Logic_const.new_predicate
-              (Logic_const.pvalid_read (BuiltinLabel Here, t))
+              (Logic_const.pvalid_read (BuiltinLabel Here, term))
           in
 
           Queue.add
@@ -188,7 +188,7 @@ module Auxiliary = struct
 
   (** Add ensures for the given term with the eva analysis results to the
       infered behavior contract of the given function. *)
-  let emit_eva_result_of_term spec_type t eva_result new_kf filling_actions =
+  let emit_eva_result_of_term spec_type term eva_result new_kf filling_actions =
     (* This checks that eva_result is a properly generated ivalue and not an error which it will be if the term is a pointer. *)
     if Result.is_ok eva_result then
       let i : Ival.t = Result.get_ok eva_result in
@@ -200,23 +200,23 @@ module Auxiliary = struct
             let iv = Ival.project_int i in
             let it = Logic_const.tint iv in
             let ip =
-              Logic_const.prel (Req, t, it) |> Logic_const.new_predicate
+              Logic_const.prel (Req, term, it) |> Logic_const.new_predicate
             in
             [ ip ])
           else if Ival.is_small_set i then (
             p_debug "··· The range contains a small set of values." ~level:3;
             let ivs = Option.get (Ival.project_small_set i) in
-            let ip = Isp_utils.create_subset_ip t ivs in
+            let ip = Isp_utils.create_subset_ip term ivs in
             [ ip ])
           else (
             p_debug "··· The range contains is an interval of values." ~level:3;
             let lower_bound = Option.get (Ival.min_int i) in
             let upper_bound = Option.get (Ival.max_int i) in
             let lower_term = Logic_const.tint lower_bound in
-            let pl : predicate = Logic_const.prel (Rge, t, lower_term) in
+            let pl : predicate = Logic_const.prel (Rge, term, lower_term) in
             let ipl : identified_predicate = Logic_const.new_predicate pl in
             let upper_term = Logic_const.tint upper_bound in
-            let pu : predicate = Logic_const.prel (Rle, t, upper_term) in
+            let pu : predicate = Logic_const.prel (Rle, term, upper_term) in
             let ipu : identified_predicate = Logic_const.new_predicate pu in
             [ ipl; ipu ]))
         else if Ival.is_float i then (
@@ -226,29 +226,29 @@ module Auxiliary = struct
               let ip =
                 if l = u then
                   let v = Isp_utils.abstract_float_to_term_float l in
-                  let p = Logic_const.prel (Req, t, v) in
+                  let p = Logic_const.prel (Req, term, v) in
                   Logic_const.new_predicate p
                 else
                   let l = Isp_utils.abstract_float_to_term_float l in
                   let u = Isp_utils.abstract_float_to_term_float u in
-                  let pl = Logic_const.prel (Rge, t, l) in
-                  let pu = Logic_const.prel (Rle, t, u) in
+                  let pl = Logic_const.prel (Rge, term, l) in
+                  let pu = Logic_const.prel (Rle, term, u) in
                   let p = Logic_const.pand (pl, pu) in
                   if nan then
                     p_warning "The range of values for %a contain a NaN!"
-                      Printer.pp_term t;
+                      Printer.pp_term term;
                   Logic_const.new_predicate p
               in
               [ ip ]
           | _ ->
-              p_warning "The values of %a is NaN!" Printer.pp_term t;
+              p_warning "The values of %a is NaN!" Printer.pp_term term;
               [])
         else (
           p_warning "Unknown type for the range!";
           [])
       in
       if List.length ip_list = 0 then
-        p_warning "Analysis for term %a is not implemented!" Printer.pp_term t
+        p_warning "Analysis for term %a is not implemented!" Printer.pp_term term
       else
         match spec_type with
         | Ensures ->
@@ -258,7 +258,7 @@ module Auxiliary = struct
                 Annotations.add_ensures emitter new_kf
                   tk_ip_list)
               filling_actions;
-            p_debug "·· Emitted: ensures for %a." Printer.pp_term t ~level:2
+            p_debug "·· Emitted: ensures for %a." Printer.pp_term term ~level:2
         | Requires ->
             Queue.add
               (fun () ->
@@ -271,46 +271,70 @@ module Auxiliary = struct
       p_warning
         "The term %a is a pointer! Eva can't evaluate this, and thus no \
          annotations are created for this term."
-        Printer.pp_term t
+        Printer.pp_term term
+
+  (** Add 'spec_type' annotations for the given lval to the infered behavior
+      contract of the given function. 'to_term' is a function that converts
+      an lval into a term. *)
+  let emit_lval_spec spec_type lvalue to_term req new_kf filling_actions =
+    match Cil.unrollType (Cil.typeOfLval lvalue) with
+    | TNamed _ -> 
+      (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
+      failwith "Trying to emit annotations for non-unrolled type."
+    | TComp _ as styp->
+        let (lhost, _) = lvalue in
+        let offsets = Isp_utils.find_field_offsets styp in
+        p_debug "···· number of found offsets %i" (List.length offsets) ~level:4;
+        List.iter 
+          (fun offset ->
+            let term = to_term (lhost, offset) in
+            let eva_result = Isp_utils.get_eva_analysis_for_lval req (lhost, offset) in
+            emit_eva_result_of_term spec_type term eva_result new_kf filling_actions)
+          offsets
+    | _ ->
+      p_debug "···· non TComp type" ~level:4;
+      let term = to_term lvalue in
+      let eva_result = Isp_utils.get_eva_analysis_for_lval req lvalue in
+      emit_eva_result_of_term spec_type term eva_result new_kf filling_actions
 
   (** Add ensures for the mutated global variables to the infered behavior contract
       of the given function. *)
   let emit_ensures_for_m_g_v req new_kf filling_actions =
     Isp_local_states.Global_Vars.Mutated_Global_Vars.iter (fun name lv ->
         p_debug "··· Emitting ensures for global variable %s" name ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        let t = Isp_utils.lval_to_term lv in
-        emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
+        emit_lval_spec Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
 
   let emit_ensures_for_ptr_func_args req new_kf filling_actions =
     List.iter
       (fun lv ->
         p_debug "··· Emitting ensures for pointer argument %a." Printer.pp_lval
           lv ~level:3;
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        let t = Isp_utils.lval_to_term lv in
-        emit_eva_result_of_term Ensures t eva_result new_kf filling_actions)
+        emit_lval_spec Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
 
   (** Add ensures for the result (when exist) to the infered behavior contract
-      of the given function.
-      Todo: Factor out the pattern matching. *)
+      of the given function. *)
   let emit_ensures_for_results exp_opt req new_kf filling_actions =
+    let emit_ensure_for_non_lval_result_expression e req new_kf filling_actions =
+      let term = Cil.typeOf e |> Logic_const.tresult in
+      let eva_result = Eva.Results.eval_exp e req in
+      emit_eva_result_of_term Ensures term (Eva.Results.as_ival eva_result) new_kf filling_actions
+    in
+    let to_term lvalue =
+      let typ = Cil.typeOfLval lvalue in
+      let (_, offset) = lvalue in
+       p_debug "··· Emitting ensures for result expression %a." Printer.pp_lval lvalue ~level:3;
+      Logic_const.term (TLval(TResult typ, Logic_utils.offset_to_term_offset offset)) (Ctype typ)
+    in
     match exp_opt with
     | None -> ()
-    | Some e ->
-        p_debug "··· Emitting ensures for \\result" ~level:3;
-        let t = Cil.typeOf e |> Logic_const.tresult in
-        let eva_result = Eva.Results.eval_exp e req in
-        emit_eva_result_of_term Ensures t (Eva.Results.as_ival eva_result) new_kf filling_actions
+    | Some ({enode = Lval lvalue; _}) -> emit_lval_spec Ensures lvalue to_term req new_kf filling_actions
+    | Some e -> emit_ensure_for_non_lval_result_expression e req new_kf filling_actions
 
   let emit_req_for_function_parameters new_kf filling_actions =
     let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
-
     let em lv =
-      let t = Isp_utils.lval_to_term lv in
-      let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-      emit_eva_result_of_term Requires t eva_result new_kf filling_actions
+      emit_lval_spec Requires lv Isp_utils.lval_to_term req new_kf filling_actions
     in
     List.iter
       (fun lv ->
@@ -328,11 +352,8 @@ module Auxiliary = struct
   let emit_req_for_global_variables new_kf filling_actions =
     let req = Isp_local_states.Visitor_State.get_fn_entry_request () in
     Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
-        p_debug "··· Emitting requires for accessed global variable %s." name
-          ~level:3;
-        let t = Isp_utils.lval_to_term lv in
-        let eva_result = Isp_utils.get_eva_analysis_for_lval req lv in
-        emit_eva_result_of_term Requires t eva_result new_kf filling_actions)
+        p_debug "··· Emitting requires for accessed global variable %s." name ~level:3;
+        emit_lval_spec Requires lv Isp_utils.lval_to_term req new_kf filling_actions)
 
   let emit_function_contract new_kf filling_actions =
     Queue.add
