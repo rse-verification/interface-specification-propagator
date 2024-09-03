@@ -187,3 +187,18 @@ let get_lvals_with_const_index (lh, o) req =
             [] values
       | _ -> failwith "Isp: should not reach here! (get_lvals)")
   | _ -> failwith "Isp: should not reach here! (get_lvals)"
+
+
+let rec find_field_offsets typ =
+  match Cil.unrollType typ with
+  | TNamed _ -> 
+    (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
+    failwith "Trying to emit annotations for non-unrolled type."
+  | TComp (compinfo, _) ->
+      List.flatten 
+        (List.map
+          (fun fieldinfo ->
+            let o = find_field_offsets fieldinfo.ftype in
+            List.map (fun f -> Field (fieldinfo, f)) o)
+          (Option.value compinfo.cfields ~default:[]))
+  | _ -> [NoOffset]
