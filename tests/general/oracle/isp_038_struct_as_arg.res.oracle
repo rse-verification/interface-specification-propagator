@@ -47,21 +47,19 @@ StructB gs;
  */
 StructB get_struct(void);
 
-/*@ behavior isp_generated:
-      assumes \true;
-      requires a.b2 ≥ -2989;
-      requires a.b2 ≤ 49374;
-      requires a.b1.a2 ≥ -inf ∧ a.b1.a2 ≤ inf;
-      requires a.b1.a1 ≥ -313;
-      requires a.b1.a1 ≤ 17;
-      requires \valid_read(&gs);
-      requires \valid(&gs);
-      ensures gs.b2 ≥ -2989;
-      ensures gs.b2 ≤ 49374;
-      ensures gs.b1.a2 ≥ -inf ∧ gs.b1.a2 ≤ inf;
-      ensures gs.b1.a1 ≥ -313;
-      ensures gs.b1.a1 ≤ 17;
-      assigns gs;
+/*@ requires a.b2 ≥ -2989;
+    requires a.b2 ≤ 49374;
+    requires a.b1.a2 ≥ -inf ∧ a.b1.a2 ≤ inf;
+    requires a.b1.a1 ≥ -313;
+    requires a.b1.a1 ≤ 17;
+    requires \valid_read(&gs);
+    requires \valid(&gs);
+    ensures gs.b2 ≥ -2989;
+    ensures gs.b2 ≤ 49374;
+    ensures gs.b1.a2 ≥ -inf ∧ gs.b1.a2 ≤ inf;
+    ensures gs.b1.a1 ≥ -313;
+    ensures gs.b1.a1 ≤ 17;
+    assigns gs;
  */
 void set_global_struct(StructB a)
 {
@@ -69,16 +67,14 @@ void set_global_struct(StructB a)
   return;
 }
 
-/*@ behavior isp_generated:
-      assumes \true;
-      requires \valid_read(&gs);
-      requires \valid(&gs);
-      ensures gs.b2 ≥ -2989;
-      ensures gs.b2 ≤ 49374;
-      ensures gs.b1.a2 ≥ -inf ∧ gs.b1.a2 ≤ inf;
-      ensures gs.b1.a1 ≥ -313;
-      ensures gs.b1.a1 ≤ 17;
-      assigns gs;
+/*@ requires \valid_read(&gs);
+    requires \valid(&gs);
+    ensures gs.b2 ≥ -2989;
+    ensures gs.b2 ≤ 49374;
+    ensures gs.b1.a2 ≥ -inf ∧ gs.b1.a2 ≤ inf;
+    ensures gs.b1.a1 ≥ -313;
+    ensures gs.b1.a1 ≤ 17;
+    assigns gs;
  */
 void main(void)
 {

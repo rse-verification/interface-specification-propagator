@@ -42,6 +42,13 @@ module EntryPoint = Self.String (struct
   let help = "the entry-point function name of the module (default: main)"
 end)
 
+module PrintFile = Self.String (struct
+  let option_name = "-isp-print-file"
+  let default = ""
+  let arg_name = "file-name"
+  let help = "File name to output the transformed source code and contracts"
+end)
+
 module Print = Self.False (struct
   let option_name = "-isp-print"
 

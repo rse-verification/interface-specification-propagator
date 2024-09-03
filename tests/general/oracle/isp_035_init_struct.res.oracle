@@ -31,18 +31,16 @@ struct __anonstruct_StructB_2 {
    int b2 ;
 };
 typedef struct __anonstruct_StructB_2 StructB;
-/*@ behavior isp_generated:
-      assumes \true;
-      requires \valid_read(s);
-      requires \valid(s);
-      requires \valid_read(s);
-      requires \valid(s);
-      requires \valid_read(s);
-      requires \valid(s);
-      ensures s->b1.a1 ≡ 84;
-      ensures s->b1.a2 ≡ 1.;
-      ensures s->b2 ≡ 42;
-      assigns s->b2, s->b1.a2, s->b1.a1;
+/*@ requires \valid_read(s);
+    requires \valid(s);
+    requires \valid_read(s);
+    requires \valid(s);
+    requires \valid_read(s);
+    requires \valid(s);
+    ensures s->b1.a1 ≡ 84;
+    ensures s->b1.a2 ≡ 1.;
+    ensures s->b2 ≡ 42;
+    assigns s->b2, s->b1.a2, s->b1.a1;
  */
 void init_struct(StructB *s)
 {
@@ -52,9 +50,7 @@ void init_struct(StructB *s)
   return;
 }
 
-/*@ behavior isp_generated:
-      assumes \true;
-      assigns \nothing; */
+/*@ assigns \nothing; */
 void main(void)
 {
   StructB ls;
