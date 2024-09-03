@@ -2,15 +2,12 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   X[0..4] ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
   Y[0..1] ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
 [eva:alarm] isp_012_float_interval.c:18: Warning: 
   function main, behavior interface_spec: precondition X[0 .. 3] ≡ 1.0 ∨
                                                        X[0 .. 3] ≡ 2.0 got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   2 functions analyzed (out of 2): 100% coverage.

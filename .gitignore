@@ -28,4 +28,5 @@
 **/tests/scania/stee_gustav
 **/tests/scania/warn
 **/tests/ghost
+**/tests/general/oracle/dune
 _build

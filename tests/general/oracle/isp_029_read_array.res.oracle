@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   STATE[0..1] ∈ [--..--]
   DB[0..1] ∈ [--..--]
@@ -16,7 +14,6 @@
 [eva:alarm] isp_029_read_array.c:26: Warning: 
   function main, behavior interface_spec: precondition DB[SPEED] ∈
                                                        (0 .. 9000) got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   3 functions analyzed (out of 3): 100% coverage.

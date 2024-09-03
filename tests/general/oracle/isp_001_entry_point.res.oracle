@@ -1,11 +1,8 @@
 [kernel] Parsing isp_001_entry_point.c (with preprocessing)
 [isp] Execute Eva with entry point "entry"
 [eva] Analyzing an incomplete application starting at entry
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   
-[eva] done for function entry
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   1 function analyzed (out of 1): 100% coverage.
