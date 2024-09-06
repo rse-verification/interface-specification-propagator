@@ -18,16 +18,19 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - "4.14"
+          - "4.13.1"
           - "5.1"
 
     runs-on: ${{ matrix.os }}
     container:
       image: framac/frama-c:28.1
       options: --user root
+
     steps:
       - name: Checkout tree
         uses: actions/checkout@v4
+
+      - run: su - opam
 
       - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
