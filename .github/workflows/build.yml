@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout tree
         uses: actions/checkout@v4
+        with: 
+          set-safe-directory: true
 
       - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
