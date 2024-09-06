@@ -14,7 +14,7 @@
 (package 
   (name frama-c-isp)
  (depends
-  (ocaml (>= 4.14))
+  (ocaml (>= 4.13.1))
   (frama-c (and (>= 26) (< 29))))
  (synopsis "Automatic inference of ACSL auxilliary annotations")
  (description "This plugin for the Frama-C platform for source code analysis

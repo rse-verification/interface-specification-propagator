@@ -22,12 +22,12 @@ jobs:
           - "5.1"
 
     runs-on: ${{ matrix.os }}
-    container: framac/frama-c:28.1
+    container:
+      image: framac/frama-c:28.1
+      options: --user root
     steps:
       - name: Checkout tree
         uses: actions/checkout@v4
-        with: 
-          set-safe-directory: true
 
       - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
@@ -37,3 +37,4 @@ jobs:
           opam install . --deps-only --with-test
           opam exec -- dune build
           opam exec -- dune runtest
+          opam exec -- frama-c-ptests && dune build @ptests

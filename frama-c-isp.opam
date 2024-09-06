@@ -13,7 +13,7 @@ homepage:
 bug-reports: "https://github.com/rse-verification/isp/issues"
 depends: [
   "dune" {>= "3.2"}
-  "ocaml" {>= "4.14"}
+  "ocaml" {>= "4.13.1"}
   "frama-c" {>= "26" & < "29"}
   "odoc" {with-doc}
 ]
