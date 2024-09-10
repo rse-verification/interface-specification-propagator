@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   X[0..3] ∈ [--..--]
 [eva:alarm] isp_010_enum_typedef.c:18: Warning: 
@@ -11,7 +9,6 @@
 [eva:alarm] isp_010_enum_typedef.c:19: Warning: 
   function main, behavior interface_spec: precondition X[EN3] ∈
                                                        {1, 2, 3, 4, 5} got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   2 functions analyzed (out of 2): 100% coverage.
@@ -34,16 +31,14 @@ enum __anonenum_SIGNAL_1 {
     NUM_ENS = 4
 };
 int X[NUM_ENS];
-/*@ behavior isp_generated:
-      assumes \true;
-      requires X[EN2] ≡ 1;
-      requires X[EN3] ∈ {1, 2, 3, 4, 5};
-      requires X[EN1] ≡ 1;
-      requires \valid_read(&X[EN2]);
-      requires \valid_read(&X[EN3]);
-      requires \valid_read(&X[EN1]);
-      ensures \result ∈ {3, 4, 5, 6, 7};
-      assigns \nothing;
+/*@ requires X[EN2] ≡ 1;
+    requires X[EN3] ∈ {1, 2, 3, 4, 5};
+    requires X[EN1] ≡ 1;
+    requires \valid_read(&X[EN2]);
+    requires \valid_read(&X[EN3]);
+    requires \valid_read(&X[EN1]);
+    ensures \result ∈ {3, 4, 5, 6, 7};
+    assigns \nothing;
  */
 int first_3_sum(void)
 {
@@ -52,25 +47,23 @@ int first_3_sum(void)
   return __retres;
 }
 
-/*@ behavior interface_spec:
+/*@ requires X[EN2] ≡ 1;
+    requires X[EN3] ∈ {1, 2, 3, 4, 5};
+    requires X[EN1] ≡ 1;
+    requires \valid_read(&X[3]);
+    requires \valid(&X[3]);
+    requires \valid_read(&X[EN2]);
+    requires \valid_read(&X[EN3]);
+    requires \valid_read(&X[EN1]);
+    ensures X[3] ∈ {3, 4, 5, 6, 7};
+    assigns X[3];
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&X[0 .. 3]);
       requires \valid(&X[3]);
       requires X[0 .. 1] ≡ 1;
       requires X[EN3] ∈ {1, 2, 3, 4, 5};
-      assigns X[3];
-    
-    behavior isp_generated:
-      assumes \true;
-      requires X[EN2] ≡ 1;
-      requires X[EN3] ∈ {1, 2, 3, 4, 5};
-      requires X[EN1] ≡ 1;
-      requires \valid_read(&X[3]);
-      requires \valid(&X[3]);
-      requires \valid_read(&X[EN2]);
-      requires \valid_read(&X[EN3]);
-      requires \valid_read(&X[EN1]);
-      ensures X[3] ∈ {3, 4, 5, 6, 7};
       assigns X[3];
  */
 void main(void)

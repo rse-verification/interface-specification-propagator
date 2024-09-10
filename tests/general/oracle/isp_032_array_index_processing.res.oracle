@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   DB[0..4] ∈ [--..--]
   X ∈ [--..--]
@@ -23,7 +21,6 @@
 [eva:alarm] isp_032_array_index_processing.c:24: Warning: 
   function main, behavior interface_spec: precondition X ∈
                                                        {RPM, SPEED, PRESSURE} got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   2 functions analyzed (out of 2): 100% coverage.
@@ -49,20 +46,18 @@ enum __anonenum_PARAMETER_1 {
 typedef enum __anonenum_PARAMETER_1 PARAMETER;
 int DB[5];
 PARAMETER X;
-/*@ behavior isp_generated:
-      assumes \true;
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 400;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires DB[4] ≥ 0;
-      requires DB[4] ≤ 150;
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)DB);
-      requires \valid_read(&DB[4]);
-      ensures \result ≥ 0;
-      ensures \result ≤ 9000;
-      assigns \nothing;
+/*@ requires DB[1] ≥ 0;
+    requires DB[1] ≤ 400;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires DB[4] ≥ 0;
+    requires DB[4] ≤ 150;
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)DB);
+    requires \valid_read(&DB[4]);
+    ensures \result ≥ 0;
+    ensures \result ≤ 9000;
+    assigns \nothing;
  */
 int read_db(PARAMETER p)
 {
@@ -71,7 +66,18 @@ int read_db(PARAMETER p)
   return __retres;
 }
 
-/*@ behavior interface_spec:
+/*@ requires DB[1] ≥ 0;
+    requires DB[1] ≤ 400;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires DB[4] ≥ 0;
+    requires DB[4] ≤ 150;
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)DB);
+    requires \valid_read(&DB[4]);
+    assigns \nothing;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&DB[0 .. 4]);
       requires DB[RPM] ∈ (0 .. 9000);
@@ -80,19 +86,6 @@ int read_db(PARAMETER p)
       requires DB[HUMIDITY] ∈ (0 .. 100);
       requires DB[PRESSURE] ∈ (0 .. 150);
       requires X ∈ {RPM, SPEED, PRESSURE};
-      assigns \nothing;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 400;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires DB[4] ≥ 0;
-      requires DB[4] ≤ 150;
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)DB);
-      requires \valid_read(&DB[4]);
       assigns \nothing;
  */
 void main(void)

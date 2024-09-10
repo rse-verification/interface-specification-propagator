@@ -1,3 +1,24 @@
+(*
+ * Copyright 2024 Scania CV AB
+ * Copyright 2024 KTH
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ *  SPDX-License-Identifier: GPL-2.0+
+ *)
+
 open Cil_types
 open Cil
 
@@ -60,7 +81,7 @@ class interface_specifications_propagator _ep prj =
           if not (Eva.Results.is_called kf) then (
             p_warning "Unreachable function: %s" fd.svar.vname;
             JustCopy)
-          (* else if fd.svar.vname = ep then 
+          (* else if fd.svar.vname = ep then
             (
               p_debug "Glob.";
               JustCopy) *)
@@ -73,7 +94,7 @@ class interface_specifications_propagator _ep prj =
             p_debug "· Adding arguments to Visited_function_arguments.";
             List.iter
               (fun vi ->
-                match vi.vtype with
+                match unrollType vi.vtype with
                 | TPtr _ ->
                     Isp_local_states.Visited_function_arguments.add_ptr_arg
                       vi.vid;
@@ -81,14 +102,14 @@ class interface_specifications_propagator _ep prj =
                       "·· Id (%d) of pointer argument %a added to \
                        Visited_function_arguments."
                       vi.vid Printer.pp_varinfo vi ~level:2
-                | TInt _ | TFloat _ ->
+                | TInt _ | TFloat _ | TComp _ ->
                     Isp_local_states.Visited_function_arguments.add_non_ptr_arg
                       vi.vid;
                     p_debug
                       "·· Id (%d) of int/float argument %a added to \
                        Visited_function_arguments."
-                      vi.vid Printer.pp_varinfo vi ~level:2
-                | TEnum _ | TNamed ({ ttype = TEnum _ }, _) ->
+                      vi.vid Printer.pp_varinfo vi ~level:2                  
+                | TEnum _ ->
                     p_warning "Arguments of Enum type (%a) are not implemented!"
                       Printer.pp_typ vi.vtype
                 | _ ->
@@ -185,7 +206,7 @@ class interface_specifications_propagator _ep prj =
                             let kf = Globals.Functions.find_by_name vi.vname in
                             Isp_local_states.Utils
                             .add_function_access_and_mutations kf
-                        | _ -> p_warning "Uncknown type of Var")
+                        | _ -> p_warning "Unknown type of Var")
                     | Mem _, _ ->
                         p_warning "The Lval is of type Mem. (not implemented).")
                 | _ ->
@@ -298,7 +319,7 @@ let execute_isp () =
     else Isp_options.EntryPoint.get ()
   in
   p_result "Execute Eva with entry point \"%s\"" ep;
-  Globals.set_entry_point ep true;  
+  Globals.set_entry_point ep true;
   Eva.Analysis.compute ();
   p_result "Eva analysis is completed.";
   let propagated_acsl =
@@ -307,4 +328,9 @@ let execute_isp () =
   in
   if Isp_options.Print.get () then (
     p_result "The transformed source code:";
-    File.pretty_ast ~prj:propagated_acsl ())
+    File.pretty_ast ~prj:propagated_acsl ());
+  let fname = Isp_options.PrintFile.get () in
+  if (not(fname = "")) then (
+    File.pretty_ast ~prj:propagated_acsl
+      ~fmt:(Format.formatter_of_out_channel (open_out (fname))) ()
+  )

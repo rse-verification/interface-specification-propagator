@@ -2,15 +2,12 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
 [eva:alarm] isp_015_if.c:15: Warning: 
   function main, behavior interface_spec: precondition X ∈ {3, 4, 5} got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   1 function analyzed (out of 1): 100% coverage.
@@ -29,21 +26,19 @@
 int X;
 int Y;
 int Z;
-/*@ behavior interface_spec:
-      assumes \true;
-      requires \valid_read(&X);
-      requires \valid_read(&Z);
-      requires \valid(&Z);
-      requires X ∈ {3, 4, 5};
-      ensures Z ∈ {6, 8, 10};
-      assigns Z;
+/*@ requires X ∈ {3, 4, 5};
+    requires \valid_read(&Z);
+    requires \valid(&Z);
+    requires \valid_read(&X);
+    ensures Z ∈ {6, 8, 10};
+    assigns Z;
     
-    behavior isp_generated:
+    behavior interface_spec:
       assumes \true;
-      requires X ∈ {3, 4, 5};
+      requires \valid_read(&X);
       requires \valid_read(&Z);
       requires \valid(&Z);
-      requires \valid_read(&X);
+      requires X ∈ {3, 4, 5};
       ensures Z ∈ {6, 8, 10};
       assigns Z;
  */

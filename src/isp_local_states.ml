@@ -1,3 +1,24 @@
+(*
+ * Copyright 2024 Scania CV AB
+ * Copyright 2024 KTH
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ *  SPDX-License-Identifier: GPL-2.0+
+ *)
+
 (** A state local to the ISP plugin. This state is not visible for external plugins. *)
 
 open Cil_types
@@ -178,7 +199,7 @@ module type Fun_Access_Mutate = sig
   val clear : unit -> unit
 end
 
-(** Contains lists of the mutated and accessed global variables fo each function. *)
+(** Contains lists of the mutated and accessed global variables of each function. *)
 module Fun_Access_Mutate : Fun_Access_Mutate = struct
   let hashtable : (kernel_function, global_variables_in_fun) Hashtbl.t =
     Hashtbl.create 200
@@ -353,6 +374,8 @@ module Utils = struct
   let add_function_access_and_mutations kf =
     (match Fun_Access_Mutate.get_opt kf with
     | None ->
+        (* TODO: This warning seems to be incorrect. The function is not unknown,
+           it just happens to NOT access or mutate any global variables. *)
         p_warning "A function call to an unknown function: %s"
           (Kernel_function.get_name kf)
     | Some access_and_mutations ->

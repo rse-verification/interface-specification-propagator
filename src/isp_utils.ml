@@ -1,3 +1,24 @@
+(*
+ * Copyright 2024 Scania CV AB
+ * Copyright 2024 KTH
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ *  SPDX-License-Identifier: GPL-2.0+
+ *)
+
 open Cil_types
 
 let p_result = Isp_options.Self.result
@@ -166,3 +187,18 @@ let get_lvals_with_const_index (lh, o) req =
             [] values
       | _ -> failwith "Isp: should not reach here! (get_lvals)")
   | _ -> failwith "Isp: should not reach here! (get_lvals)"
+
+
+let rec find_field_offsets typ =
+  match Cil.unrollType typ with
+  | TNamed _ -> 
+    (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
+    failwith "Trying to emit annotations for non-unrolled type."
+  | TComp (compinfo, _) ->
+      List.flatten 
+        (List.map
+          (fun fieldinfo ->
+            let o = find_field_offsets fieldinfo.ftype in
+            List.map (fun f -> Field (fieldinfo, f)) o)
+          (Option.value compinfo.cfields ~default:[]))
+  | _ -> [NoOffset]

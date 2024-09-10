@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   STATE[0..1] ∈ [--..--]
   DB[0..1] ∈ [--..--]
@@ -16,7 +14,6 @@
 [eva:alarm] isp_029_read_array.c:26: Warning: 
   function main, behavior interface_spec: precondition DB[SPEED] ∈
                                                        (0 .. 9000) got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   3 functions analyzed (out of 3): 100% coverage.
@@ -39,17 +36,15 @@ enum __anonenum_VEHICLE_STATE_1 {
 typedef enum __anonenum_VEHICLE_STATE_1 VEHICLE_STATE;
 int STATE[2];
 int DB[2];
-/*@ behavior isp_generated:
-      assumes \true;
-      requires STATE[1] ≥ 0;
-      requires STATE[1] ≤ 9000;
-      requires STATE[0] ≥ 0;
-      requires STATE[0] ≤ 400;
-      requires \valid_read(&STATE[1]);
-      requires \valid_read((int *)STATE);
-      ensures \result ≥ 0;
-      ensures \result ≤ 9000;
-      assigns \nothing;
+/*@ requires STATE[1] ≥ 0;
+    requires STATE[1] ≤ 9000;
+    requires STATE[0] ≥ 0;
+    requires STATE[0] ≤ 400;
+    requires \valid_read(&STATE[1]);
+    requires \valid_read((int *)STATE);
+    ensures \result ≥ 0;
+    ensures \result ≤ 9000;
+    assigns \nothing;
  */
 int read_state(int idx)
 {
@@ -58,17 +53,15 @@ int read_state(int idx)
   return __retres;
 }
 
-/*@ behavior isp_generated:
-      assumes \true;
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 9000;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)DB);
-      ensures \result ≥ 0;
-      ensures \result ≤ 9000;
-      assigns \nothing;
+/*@ requires DB[1] ≥ 0;
+    requires DB[1] ≤ 9000;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)DB);
+    ensures \result ≥ 0;
+    ensures \result ≤ 9000;
+    assigns \nothing;
  */
 int read_db(VEHICLE_STATE s)
 {
@@ -77,7 +70,21 @@ int read_db(VEHICLE_STATE s)
   return __retres;
 }
 
-/*@ behavior interface_spec:
+/*@ requires STATE[1] ≥ 0;
+    requires STATE[1] ≤ 9000;
+    requires DB[1] ≥ 0;
+    requires DB[1] ≤ 9000;
+    requires STATE[0] ≥ 0;
+    requires STATE[0] ≤ 400;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires \valid_read(&STATE[1]);
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)STATE);
+    requires \valid_read((int *)DB);
+    assigns \nothing;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&STATE[0 .. 1]);
       requires \valid_read(&DB[0 .. 1]);
@@ -85,22 +92,6 @@ int read_db(VEHICLE_STATE s)
       requires STATE[1] ∈ (0 .. 9000);
       requires DB[RPM] ∈ (0 .. 9000);
       requires DB[SPEED] ∈ (0 .. 9000);
-      assigns \nothing;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires STATE[1] ≥ 0;
-      requires STATE[1] ≤ 9000;
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 9000;
-      requires STATE[0] ≥ 0;
-      requires STATE[0] ≤ 400;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires \valid_read(&STATE[1]);
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)STATE);
-      requires \valid_read((int *)DB);
       assigns \nothing;
  */
 void main(void)

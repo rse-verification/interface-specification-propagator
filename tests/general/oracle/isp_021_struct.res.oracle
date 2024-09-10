@@ -2,14 +2,11 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ [--..--]
 [eva:alarm] isp_021_struct.c:24: Warning: 
   function main, behavior interface_spec: precondition X ≡ 1 got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   1 function analyzed (out of 1): 100% coverage.
@@ -32,7 +29,20 @@ struct __anonstruct_MY_STRUCT_1 {
 typedef struct __anonstruct_MY_STRUCT_1 MY_STRUCT;
 int X;
 MY_STRUCT Y;
-/*@ behavior interface_spec:
+/*@ requires X ≡ 1;
+    requires \valid_read(&Y.c);
+    requires \valid(&Y.c);
+    requires \valid_read(&Y.a);
+    requires \valid(&Y.a);
+    requires \valid_read(&Y.b);
+    requires \valid(&Y.b);
+    requires \valid_read(&X);
+    ensures Y.c ≡ 3;
+    ensures Y.a ≡ 1;
+    ensures Y.b ≡ 2;
+    assigns Y.b, Y.a, Y.c;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&X);
       requires \valid_read(&Y.a);
@@ -44,21 +54,6 @@ MY_STRUCT Y;
       requires X ≡ 1;
       ensures Y.a ≡ 1 ∧ Y.b ≡ 2 ∧ Y.c ≡ 3;
       assigns Y.a, Y.b, Y.c;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires X ≡ 1;
-      requires \valid_read(&Y.c);
-      requires \valid(&Y.c);
-      requires \valid_read(&Y.a);
-      requires \valid(&Y.a);
-      requires \valid_read(&Y.b);
-      requires \valid(&Y.b);
-      requires \valid_read(&X);
-      ensures Y.c ≡ 3;
-      ensures Y.a ≡ 1;
-      ensures Y.b ≡ 2;
-      assigns Y.b, Y.a, Y.c;
  */
 void main(void)
 {

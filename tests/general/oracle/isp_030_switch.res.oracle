@@ -2,8 +2,6 @@
 [isp] No entry point was specified! The default entry point "main" will be used.
 [isp] Execute Eva with entry point "main"
 [eva] Analyzing an incomplete application starting at main
-[eva] Computing initial state
-[eva] Initial state computed
 [eva:initial-state] Values of globals at initialization
   DB[0..4] ∈ [--..--]
   X ∈ [--..--]
@@ -23,7 +21,6 @@
 [eva:alarm] isp_030_switch.c:24: Warning: 
   function main, behavior interface_spec: precondition X ∈
                                                        {RPM, SPEED, PRESSURE} got status unknown.
-[eva] done for function main
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   2 functions analyzed (out of 2): 100% coverage.
@@ -37,9 +34,9 @@
   ----------------------------------------------------------------------------
 [isp] Eva analysis is completed.
 [isp] Warning: Arguments of Enum type (PARAMETER) are not implemented!
-[isp] Warning: Unreachable statement: case (PARAMETER)TEMPERATURE: read_db(TEMPERATURE);
+[isp] Warning: Unreachable statement: case TEMPERATURE: read_db(TEMPERATURE);
 [isp] Warning: Unreachable statement: break;
-[isp] Warning: Unreachable statement: case (PARAMETER)HUMIDITY: read_db(HUMIDITY);
+[isp] Warning: Unreachable statement: case HUMIDITY: read_db(HUMIDITY);
 [isp] Warning: Unreachable statement: break;
 [isp] Warning: Unreachable statement: default: break;
 [isp] The transformed source code:
@@ -54,20 +51,18 @@ enum __anonenum_PARAMETER_1 {
 typedef enum __anonenum_PARAMETER_1 PARAMETER;
 int DB[5];
 PARAMETER X;
-/*@ behavior isp_generated:
-      assumes \true;
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 400;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires DB[4] ≥ 0;
-      requires DB[4] ≤ 150;
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)DB);
-      requires \valid_read(&DB[4]);
-      ensures \result ≥ 0;
-      ensures \result ≤ 9000;
-      assigns \nothing;
+/*@ requires DB[1] ≥ 0;
+    requires DB[1] ≤ 400;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires DB[4] ≥ 0;
+    requires DB[4] ≤ 150;
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)DB);
+    requires \valid_read(&DB[4]);
+    ensures \result ≥ 0;
+    ensures \result ≤ 9000;
+    assigns \nothing;
  */
 int read_db(PARAMETER p)
 {
@@ -76,7 +71,20 @@ int read_db(PARAMETER p)
   return __retres;
 }
 
-/*@ behavior interface_spec:
+/*@ requires X ∈ {0, 1, 4};
+    requires DB[1] ≥ 0;
+    requires DB[1] ≤ 400;
+    requires DB[0] ≥ 0;
+    requires DB[0] ≤ 9000;
+    requires DB[4] ≥ 0;
+    requires DB[4] ≤ 150;
+    requires \valid_read(&X);
+    requires \valid_read(&DB[1]);
+    requires \valid_read((int *)DB);
+    requires \valid_read(&DB[4]);
+    assigns \nothing;
+    
+    behavior interface_spec:
       assumes \true;
       requires \valid_read(&DB[0 .. 4]);
       requires DB[RPM] ∈ (0 .. 9000);
@@ -86,34 +94,19 @@ int read_db(PARAMETER p)
       requires DB[PRESSURE] ∈ (0 .. 150);
       requires X ∈ {RPM, SPEED, PRESSURE};
       assigns \nothing;
-    
-    behavior isp_generated:
-      assumes \true;
-      requires X ∈ {0, 1, 4};
-      requires DB[1] ≥ 0;
-      requires DB[1] ≤ 400;
-      requires DB[0] ≥ 0;
-      requires DB[0] ≤ 9000;
-      requires DB[4] ≥ 0;
-      requires DB[4] ≤ 150;
-      requires \valid_read(&X);
-      requires \valid_read(&DB[1]);
-      requires \valid_read((int *)DB);
-      requires \valid_read(&DB[4]);
-      assigns \nothing;
  */
 void main(void)
 {
   switch (X) {
-    case (PARAMETER)RPM: read_db(RPM);
+    case RPM: read_db(RPM);
     break;
-    case (PARAMETER)SPEED: read_db(SPEED);
+    case SPEED: read_db(SPEED);
     break;
-    case (PARAMETER)TEMPERATURE: read_db(TEMPERATURE);
+    case TEMPERATURE: read_db(TEMPERATURE);
     break;
-    case (PARAMETER)HUMIDITY: read_db(HUMIDITY);
+    case HUMIDITY: read_db(HUMIDITY);
     break;
-    case (PARAMETER)PRESSURE: read_db(PRESSURE);
+    case PRESSURE: read_db(PRESSURE);
     break;
     default: break;
   }

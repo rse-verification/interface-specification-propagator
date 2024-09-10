@@ -1,6 +1,10 @@
 ## FIT
 
+[![Build Status](https://github.com/rse-verification/interface-specification-propagator/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/rse-verification/interface-specification-propagator/actions/workflows/build.yml)
+
 Note that this plugin is in an experimental state.
+
+This plugin is licensed under the GPL2 license, see license headers in source code files and the full license in the LICENSE file.
 
 ## PURPOSE
 
@@ -25,6 +29,7 @@ To run the plugin on file test.c, use the following command: ```frama-c -isp tes
 ##### Options ####
 
 - Use ```-isp-print``` if you want the result to be printed.
+- Use ```-isp-print-file out.c``` if you want the result to be printed to file ```out.c```.
 - Use ```-isp-entry-point "function" ``` if you want to use a different function as the entry point for the analysis than the default ```main```.
                                              
 ## THEORY
@@ -37,6 +42,15 @@ Our method is based on the value analysis of Frama-C, which can bound the possib
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
 - [Improving the Synthesis of Annotations for Partially Automated Deductive Verification](https://kth.diva-portal.org/smash/get/diva2:1801578/FULLTEXT01.pdf) by Hovig Manjikian
+
+## Limitations
+
+C language limitations:
+* Does currently not support complex expressions for indexing arrays, pointer arithmetic other than array indexing, nested pointers, or nested structs.
+* Does not support programs with local static variables.
+
+Regarding ACSL, support exist for requires, ensures, and assign clauses, as well as the behavior construct. Supports most ACSL operators (implication, nested inequalities, etc.), and the built-in predicates \valid and \valid_read.
+Other ACSL constructs and built-ins than the above are generally not supported currently.
 
 ## Main authors
 - Daniel Skantz
