@@ -14,7 +14,7 @@ The purpose of this Frama-C plugin is to automatically provide contract componen
 
 ## INSTALL
 
-For Frama-C version 26 and onward:
+For Frama-C version 29 and onward:
 ```dune build @install && dune install```
 
 To run the test suite: ```frama-c-ptests && dune build @ptests```
