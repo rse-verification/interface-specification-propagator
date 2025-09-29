@@ -190,11 +190,11 @@ let get_lvals_with_const_index (lh, o) req =
 
 
 let rec find_field_offsets typ =
-  match Cil.unrollType typ with
+  match (Ast_types.unroll typ).tnode with
   | TNamed _ -> 
     (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
     failwith "Trying to emit annotations for non-unrolled type."
-  | TComp (compinfo, _) ->
+  | TComp (compinfo) ->
       List.flatten 
         (List.map
           (fun fieldinfo ->

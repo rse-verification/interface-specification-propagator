@@ -94,7 +94,7 @@ class interface_specifications_propagator _ep prj =
             p_debug "· Adding arguments to Visited_function_arguments.";
             List.iter
               (fun vi ->
-                match unrollType vi.vtype with
+                match (Ast_types.unroll vi.vtype).tnode with
                 | TPtr _ ->
                     Isp_local_states.Visited_function_arguments.add_ptr_arg
                       vi.vid;
@@ -200,8 +200,8 @@ class interface_specifications_propagator _ep prj =
                     match lv with
                     | Var vi, _o -> (
                         p_debug "· The Lval is of type Var.";
-                        match vi.vtype with
-                        | TFun (_, _, _, _) ->
+                        match vi.vtype.tnode with
+                        | TFun (_, _, _) ->
                             p_debug "· The Var is a function.";
                             let kf = Globals.Functions.find_by_name vi.vname in
                             Isp_local_states.Utils
