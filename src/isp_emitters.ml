@@ -277,13 +277,14 @@ module Auxiliary = struct
       contract of the given function. 'to_term' is a function that converts
       an lval into a term. *)
   let emit_lval_spec spec_type lvalue to_term req new_kf filling_actions =
-    match Cil.unrollType (Cil.typeOfLval lvalue) with
+    let unrolled_typ = (Ast_types.unroll (Cil.typeOfLval lvalue)) in
+    match unrolled_typ.tnode with
     | TNamed _ -> 
       (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
       failwith "Trying to emit annotations for non-unrolled type."
-    | TComp _ as styp->
+    | TComp _ ->
         let (lhost, _) = lvalue in
-        let offsets = Isp_utils.find_field_offsets styp in
+        let offsets = Isp_utils.find_field_offsets unrolled_typ in
         p_debug "···· number of found offsets %i" (List.length offsets) ~level:4;
         List.iter 
           (fun offset ->
