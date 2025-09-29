@@ -18,8 +18,7 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - "4.13.1"
-          - "5.1"
+          - "4.14.2"
 
     runs-on: ${{ matrix.os }}
 
@@ -32,6 +31,8 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
       - run: |
-          opam install . --deps-only --with-test
-          opam exec -- dune build
-          opam exec -- dune runtest
+          opam --cli=2.1 install . --deps-only --with-test
+          opam --cli=2.1 exec -- frama-c-ptests
+          opam --cli=2.1 exec -- dune build @install
+          opam --cli=2.1 exec -- dune build @ptests
+          opam --cli=2.1 exec -- dune runtest
