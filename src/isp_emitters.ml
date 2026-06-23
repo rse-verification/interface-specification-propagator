@@ -313,6 +313,101 @@ module Auxiliary = struct
         emit_lval_spec Ensures lv Isp_utils.lval_to_term req new_kf filling_actions)
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
 
+  let emit_req_separated_for_mut_ptr_args new_kf filling_actions =
+    let pointer_base_lval = function
+      | Mem { enode = Lval lv }, _ -> Some lv
+      | _ -> None
+    in
+    let unique_lvals lvals =
+      List.fold_left
+        (fun acc lv ->
+          if
+            List.exists
+              (fun existing -> Isp_local_states.lval_same existing lv)
+              acc
+          then acc
+          else lv :: acc)
+        [] lvals
+      |> List.rev
+    in
+    let pointer_lvals =
+      Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ()
+      |> List.filter_map pointer_base_lval
+      |> unique_lvals
+    in
+    match pointer_lvals with
+    | [] | [ _ ] -> ()
+    | _ ->
+        let terms = List.map Isp_utils.lval_to_term pointer_lvals in
+        let ip = Logic_const.pseparated terms |> Logic_const.new_predicate in
+        Queue.add
+          (fun () ->
+            Annotations.add_requires emitter new_kf [ ip ])
+          filling_actions;
+        p_debug "·· Emitted pointer separation require %a"
+          Printer.pp_identified_predicate ip ~level:2
+
+  let emit_relational_ensures_for_mutations new_kf filling_actions =
+    let old_term term =
+      Logic_const.term (Tat (term, BuiltinLabel Old)) term.term_type
+    in
+    Isp_local_states.Relational_Mutations.iter_unique (fun lv op rhs ->
+        let current_term = Isp_utils.lval_to_term lv in
+        let old_lval_term = old_term current_term in
+        let rhs_term = Logic_utils.expr_to_term rhs in
+        let relation_term =
+          Logic_const.term (TBinOp (op, old_lval_term, rhs_term))
+            current_term.term_type
+        in
+        let ip =
+          Logic_const.prel (Req, current_term, relation_term)
+          |> Logic_const.new_predicate
+        in
+        Queue.add
+          (fun () ->
+            Annotations.add_ensures emitter new_kf [ (Normal, ip) ])
+          filling_actions;
+        p_debug "·· Emitted relational ensure %a"
+          Printer.pp_identified_predicate ip ~level:2)
+
+  let emit_relational_requires_for_mutations new_kf filling_actions =
+    let rec integer_of_exp e =
+      match e.enode with
+      | Const (CInt64 (i, _, _)) -> Some i
+      | CastE (_, e) -> integer_of_exp e
+      | _ -> None
+    in
+    let integer_bounds_for_lval lv =
+      match (Ast_types.unroll (Cil.typeOfLval lv)).tnode with
+      | TInt ik when Cil.isSigned ik ->
+          let bits = Cil.bitsSizeOfInt ik in
+          Some (Cil.min_signed_number bits, Cil.max_signed_number bits)
+      | _ -> None
+    in
+    let emit_bound lv rel bound =
+      let term = Isp_utils.lval_to_term lv in
+      let bound_term = Logic_const.tint bound in
+      let ip =
+        Logic_const.prel (rel, term, bound_term)
+        |> Logic_const.new_predicate
+      in
+      Queue.add
+        (fun () ->
+          Annotations.add_requires emitter new_kf [ ip ])
+        filling_actions;
+      p_debug "·· Emitted arithmetic safety require %a"
+        Printer.pp_identified_predicate ip ~level:2
+    in
+    Isp_local_states.Relational_Mutations.iter_unique (fun lv op rhs ->
+        match (integer_bounds_for_lval lv, integer_of_exp rhs) with
+        | Some (min_bound, max_bound), Some value
+          when Integer.ge value Integer.zero -> (
+            match op with
+            | PlusA -> emit_bound lv Rle (Integer.sub max_bound value)
+            | MinusA -> emit_bound lv Rge (Integer.add min_bound value)
+            | _ -> ())
+        | _ -> ())
+
   (** Add ensures for the result (when exist) to the infered behavior contract
       of the given function. *)
   let emit_ensures_for_results exp_opt req new_kf filling_actions =
@@ -368,11 +463,14 @@ module Auxiliary = struct
       (Kernel_function.get_name new_kf);
     emit_req_valid_read new_kf filling_actions;
     emit_req_valid new_kf filling_actions;
+    emit_req_separated_for_mut_ptr_args new_kf filling_actions;
     emit_req_for_function_parameters new_kf filling_actions;
+    emit_relational_requires_for_mutations new_kf filling_actions;
     emit_req_for_global_variables new_kf filling_actions;
     emit_assigns new_kf filling_actions;
     emit_ensures_for_m_g_v req new_kf filling_actions;
     emit_ensures_for_ptr_func_args req new_kf filling_actions;
+    emit_relational_ensures_for_mutations new_kf filling_actions;
     emit_ensures_for_results exp_opt req new_kf filling_actions;
     emit_function_contract new_kf filling_actions;
     p_debug "· Emission process for functions %s is completed."
