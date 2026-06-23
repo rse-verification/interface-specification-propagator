@@ -28,6 +28,11 @@ let p_debug = Isp_options.Self.debug
 let p_result = Isp_options.Self.result
 let p_warning = Isp_options.Self.warning
 
+let lval_same lval1 lval2 =
+  Cil_datatype.Lval.equal lval1 lval2
+  || Format.asprintf "%a" Printer.pp_lval lval1
+     = Format.asprintf "%a" Printer.pp_lval lval2
+
 (** Used to store the current [kinstr] and [kernel_function]. 
     Todo: move the match process to here for get functions.*)
 module type Visitor_State = sig
@@ -311,7 +316,7 @@ module Visited_function_arguments : Visited_function_arguments = struct
   let get_mut_ptr_arg_to_emit () = !mut_ptr_args_to_emit
 
   let mut_ptr_args_to_emit_contains lv =
-    List.exists (fun l -> l = lv) !mut_ptr_args_to_emit
+    List.exists (fun l -> lval_same l lv) !mut_ptr_args_to_emit
 
   let add_acc_ptr_arg_to_emit lv =
     acc_ptr_args_to_emit := lv :: !acc_ptr_args_to_emit;
@@ -321,7 +326,7 @@ module Visited_function_arguments : Visited_function_arguments = struct
   let get_acc_ptr_arg_to_emit () = !acc_ptr_args_to_emit
 
   let acc_ptr_args_to_emit_contains lv =
-    List.exists (fun l -> l = lv) !acc_ptr_args_to_emit
+    List.exists (fun l -> lval_same l lv) !acc_ptr_args_to_emit
 
   let reset () =
     non_ptr_arg_ids := IntSet.empty;
@@ -332,8 +337,67 @@ module Visited_function_arguments : Visited_function_arguments = struct
     p_debug "· Reseted Visited_function_arguments."
 end
 
+module Relational_Mutations = struct
+  type mutation = { lval : lval; op : binop; rhs : exp }
+
+  let mutations = ref []
+
+  let add lval op rhs =
+    mutations := { lval; op; rhs } :: !mutations;
+    p_debug "·· Added relational mutation for %a." Printer.pp_lval lval
+
+  let assignment_count lval =
+    List.fold_left
+      (fun count mutation ->
+        if lval_same mutation.lval lval then count + 1 else count)
+      0 !mutations
+
+  let iter_unique fn =
+    List.iter
+      (fun mutation ->
+        if assignment_count mutation.lval = 1 then
+          fn mutation.lval mutation.op mutation.rhs
+        else
+          p_warning
+            "Skipping relational postcondition for %a because it is assigned \
+             more than once."
+            Printer.pp_lval mutation.lval)
+      !mutations
+
+  let clear () =
+    mutations := [];
+    p_debug "· Cleared Relational_Mutations."
+end
+
 (** Contains functions that modify the states in [Isp_local_states]. *)
 module Utils = struct
+  let rec is_supported_relation_operand e =
+    match e.enode with
+    | Const _ -> true
+    | CastE (_, e) -> is_supported_relation_operand e
+    | _ -> false
+
+  let rec exp_is_lval lv e =
+    match e.enode with
+    | Lval rhs_lv -> lval_same rhs_lv lv
+    | CastE (_, e) -> exp_is_lval lv e
+    | _ -> false
+
+  let process_simple_mutation_relation lv e =
+    if Visited_function_arguments.mut_ptr_args_to_emit_contains lv then (
+      p_debug "·· Checking relational mutation for %a := %a." Printer.pp_lval
+        lv Printer.pp_exp e;
+      match e.enode with
+      | BinOp ((PlusA | MinusA as op), lhs, rhs, _)
+        when exp_is_lval lv lhs && is_supported_relation_operand rhs ->
+          Relational_Mutations.add lv op rhs
+      | BinOp (PlusA, lhs, rhs, _)
+        when exp_is_lval lv rhs && is_supported_relation_operand lhs ->
+          Relational_Mutations.add lv PlusA lhs
+      | _ ->
+          p_debug "·· No supported relational mutation pattern for %a := %a."
+            Printer.pp_lval lv Printer.pp_exp e)
+
   (** Will store the lvals of global variables of an expression in [Accessed_Global_Vars]. *)
   let process_global_access_and_mutations e =
     p_debug "· Finding accesses and mutations in the expression: %a"
