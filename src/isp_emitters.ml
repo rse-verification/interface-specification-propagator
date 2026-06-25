@@ -314,26 +314,10 @@ module Auxiliary = struct
       (Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ())
 
   let emit_req_separated_for_mut_ptr_args new_kf filling_actions =
-    let pointer_base_lval = function
-      | Mem { enode = Lval lv }, _ -> Some lv
-      | _ -> None
-    in
-    let unique_lvals lvals =
-      List.fold_left
-        (fun acc lv ->
-          if
-            List.exists
-              (fun existing -> Isp_local_states.lval_same existing lv)
-              acc
-          then acc
-          else lv :: acc)
-        [] lvals
-      |> List.rev
-    in
     let pointer_lvals =
       Isp_local_states.Visited_function_arguments.get_mut_ptr_arg_to_emit ()
-      |> List.filter_map pointer_base_lval
-      |> unique_lvals
+      |> List.filter_map Isp_lval.pointer_base_lval
+      |> Isp_lval.unique
     in
     match pointer_lvals with
     | [] | [ _ ] -> ()
@@ -347,7 +331,7 @@ module Auxiliary = struct
         p_debug "·· Emitted pointer separation require %a"
           Printer.pp_identified_predicate ip ~level:2
 
-  let emit_relational_requires_for_mutations new_kf filling_actions =
+  let emit_arithmetic_safety_requires_for_mutations new_kf filling_actions =
     let rec integer_of_exp e =
       match e.enode with
       | Const (CInt64 (i, _, _)) -> Some i
@@ -375,7 +359,7 @@ module Auxiliary = struct
       p_debug "·· Emitted arithmetic safety require %a"
         Printer.pp_identified_predicate ip ~level:2
     in
-    Isp_local_states.Relational_Mutations.iter_unique (fun lv op rhs ->
+    Isp_local_states.Arithmetic_Mutations.iter_unique (fun lv op rhs ->
         match (integer_bounds_for_lval lv, integer_of_exp rhs) with
         | Some (min_bound, max_bound), Some value
           when Integer.ge value Integer.zero -> (
@@ -442,7 +426,7 @@ module Auxiliary = struct
     emit_req_valid new_kf filling_actions;
     emit_req_separated_for_mut_ptr_args new_kf filling_actions;
     emit_req_for_function_parameters new_kf filling_actions;
-    emit_relational_requires_for_mutations new_kf filling_actions;
+    emit_arithmetic_safety_requires_for_mutations new_kf filling_actions;
     emit_req_for_global_variables new_kf filling_actions;
     emit_assigns new_kf filling_actions;
     emit_ensures_for_m_g_v req new_kf filling_actions;
