@@ -89,7 +89,7 @@ class interface_specifications_propagator _ep prj =
             Isp_local_states.Global_Vars.Accessed_Global_Vars.clear ();
             Isp_local_states.Global_Vars.Mutated_Global_Vars.clear ();
             Isp_local_states.Visited_function_arguments.reset ();
-            Isp_local_states.Relational_Mutations.clear ();
+            Isp_local_states.Arithmetic_Mutations.clear ();
             Isp_emitters.Behavior.reset_current_behavior ();
             Isp_local_states.Visitor_State.clear_fn_entry_request ();
             p_debug "· Adding arguments to Visited_function_arguments.";
@@ -178,7 +178,7 @@ class interface_specifications_propagator _ep prj =
                         p_warning
                           "Dereferencing expression %a is not implemented!"
                           Printer.pp_exp e_inner));
-                Isp_local_states.Utils.process_simple_mutation_relation lv e;
+                Isp_local_states.Utils.process_simple_arithmetic_mutation lv e;
                 (* Store read global variables*)
                 Visitor.visitFramacExpr self#frama_c_plain_copy e
                 |> Isp_local_states.Utils.process_expression
@@ -312,7 +312,7 @@ let execute_isp () =
   (* Reset All States *)
   Isp_local_states.Global_Vars.clear ();
   Isp_local_states.Fun_Access_Mutate.clear ();
-  Isp_local_states.Relational_Mutations.clear ();
+  Isp_local_states.Arithmetic_Mutations.clear ();
   let ep =
     if Isp_options.EntryPoint.get () = "" then (
       p_result

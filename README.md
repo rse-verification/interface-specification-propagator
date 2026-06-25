@@ -24,6 +24,8 @@ To run the test suite: ```frama-c-ptests && dune build @ptests```
 Annotate your program with ACSL postconditions / ensures clauses. Then our plugin creates auxiliary requires and assigns clauses.
 There is limited support for also inferring some ensures clauses.
 
+For mutated pointer arguments, ISP may add validity, separation, assigns, Eva-derived range clauses, and arithmetic safety preconditions for simple integer updates such as `*p = *p + 1`. These arithmetic safety clauses are preconditions only; ISP does not infer relational postconditions such as `*p == \old(*p) + 1`.
+
 To run the plugin on file test.c, use the following command: ```frama-c -isp test.c```
 
 ##### Options ####
@@ -51,7 +53,3 @@ C language limitations:
 
 Regarding ACSL, support exist for requires, ensures, and assign clauses, as well as the behavior construct. Supports most ACSL operators (implication, nested inequalities, etc.), and the built-in predicates \valid and \valid_read.
 Other ACSL constructs and built-ins than the above are generally not supported currently.
-
-## Main authors
-- Daniel Skantz
-- Hovig Manjikian
