@@ -347,29 +347,6 @@ module Auxiliary = struct
         p_debug "·· Emitted pointer separation require %a"
           Printer.pp_identified_predicate ip ~level:2
 
-  let emit_relational_ensures_for_mutations new_kf filling_actions =
-    let old_term term =
-      Logic_const.term (Tat (term, BuiltinLabel Old)) term.term_type
-    in
-    Isp_local_states.Relational_Mutations.iter_unique (fun lv op rhs ->
-        let current_term = Isp_utils.lval_to_term lv in
-        let old_lval_term = old_term current_term in
-        let rhs_term = Logic_utils.expr_to_term rhs in
-        let relation_term =
-          Logic_const.term (TBinOp (op, old_lval_term, rhs_term))
-            current_term.term_type
-        in
-        let ip =
-          Logic_const.prel (Req, current_term, relation_term)
-          |> Logic_const.new_predicate
-        in
-        Queue.add
-          (fun () ->
-            Annotations.add_ensures emitter new_kf [ (Normal, ip) ])
-          filling_actions;
-        p_debug "·· Emitted relational ensure %a"
-          Printer.pp_identified_predicate ip ~level:2)
-
   let emit_relational_requires_for_mutations new_kf filling_actions =
     let rec integer_of_exp e =
       match e.enode with
@@ -470,7 +447,6 @@ module Auxiliary = struct
     emit_assigns new_kf filling_actions;
     emit_ensures_for_m_g_v req new_kf filling_actions;
     emit_ensures_for_ptr_func_args req new_kf filling_actions;
-    emit_relational_ensures_for_mutations new_kf filling_actions;
     emit_ensures_for_results exp_opt req new_kf filling_actions;
     emit_function_contract new_kf filling_actions;
     p_debug "· Emission process for functions %s is completed."

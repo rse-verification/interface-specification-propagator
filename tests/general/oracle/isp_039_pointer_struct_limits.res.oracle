@@ -53,8 +53,6 @@ int r2;
     requires \valid(t1);
     requires \valid_read(t2);
     requires \valid(t2);
-    ensures t1->val ≡ \old(t1->val) + (int)1;
-    ensures t2->val ≡ \old(t2->val) - (int)1;
     ensures t1->val ≥ -2147483646;
     ensures t1->val ≤ 2147483647;
     ensures t2->val ≥ -2147483648;

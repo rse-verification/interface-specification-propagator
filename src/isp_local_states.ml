@@ -359,8 +359,8 @@ module Relational_Mutations = struct
           fn mutation.lval mutation.op mutation.rhs
         else
           p_warning
-            "Skipping relational postcondition for %a because it is assigned \
-             more than once."
+            "Skipping arithmetic safety annotation for %a because it is \
+             assigned more than once."
             Printer.pp_lval mutation.lval)
       !mutations
 

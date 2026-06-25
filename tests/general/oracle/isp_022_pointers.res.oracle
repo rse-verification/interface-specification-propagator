@@ -25,7 +25,6 @@ int X;
     requires *x ≡ 1;
     requires \valid_read(x);
     requires \valid(x);
-    ensures *x ≡ \old(*x) + (int)1;
     ensures *x ≡ 2;
     assigns *x;
  */
