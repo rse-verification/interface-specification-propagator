@@ -8,25 +8,46 @@ This plugin is licensed under the GPL2 license, see license headers in source co
 
 ## PURPOSE
 
-Semantic inference of auxiliary annotations in Frama-C. Frama-C is a software suite for analysis of C code. Importantly, Frama-C offers powerful value analysis and weakest precondition plugins over C source code. 
+Semantic inference of auxiliary annotations in Frama-C. Frama-C is a software suite for analysis of C code. Importantly, Frama-C offers powerful value analysis and weakest precondition plugins over C source code.
 
 The purpose of this Frama-C plugin is to automatically provide contract components for interacting with the WP plugin of Frama-C.
 
 ## INSTALL
 
-For Frama-C version 29 and onward:
-```dune build @install && dune install```
+This plugin currently targets Frama-C 31.0, as declared in `dune-project`.
 
-To run the test suite: ```frama-c-ptests && dune build @ptests```
+```sh
+dune build @install
+dune install
+```
+
+To run the test suite locally:
+
+```sh
+frama-c-ptests
+dune build @ptests
+```
 
 ## USE
 
-Annotate your program with ACSL postconditions / ensures clauses. Then our plugin creates auxiliary requires and assigns clauses.
-There is limited support for also inferring some ensures clauses.
+ISP analyzes C programs with existing ACSL contracts and generates auxiliary ACSL annotations for Frama-C/WP.
 
-For mutated pointer arguments, ISP may add validity, separation, assigns, Eva-derived range clauses, and arithmetic safety preconditions for simple integer updates such as `*p = *p + 1`. These arithmetic safety clauses are preconditions only; ISP does not infer relational postconditions such as `*p == \old(*p) + 1`.
+Depending on the program shape, ISP may emit:
 
-To run the plugin on file test.c, use the following command: ```frama-c -isp test.c```
+- `requires` clauses for Eva-derived value ranges
+- `requires \valid_read(...)` and `requires \valid(...)`
+- `requires \separated(...)` for multiple mutated pointer arguments
+- `assigns` clauses for mutated globals and pointer targets
+- Eva-derived range `ensures` clauses
+- arithmetic safety preconditions for simple single pointer updates such as `*p = *p + 1`
+
+These arithmetic safety clauses are preconditions only. ISP does not infer relational pointer postconditions such as `*p == \old(*p) + 1`.
+
+To run the plugin on file `test.c`, use:
+
+```sh
+frama-c -isp test.c
+```
 
 ##### Options ####
 
@@ -36,10 +57,11 @@ To run the plugin on file test.c, use the following command: ```frama-c -isp tes
                                              
 ## THEORY
 
-We perform semantic annotation of a program. We provide requires clauses and assigns clauses. Requires clauses are 
-synthesized from possible run-time exceptions, where the EVA plugin provides semantic discharging of always true preconditions.
+We perform semantic annotation of a program. We provide requires clauses and assigns clauses. Requires clauses are synthesized from possible run-time exceptions, where the Eva plugin provides semantic discharging of always true preconditions.
 
-Our method is based on the value analysis of Frama-C, which can bound the possible values of program variables at different program points. In this way we can proceed to deduce necessary pre-conditions to prevent run-time errors in a program, bound the return values of functions, and realize a memory model specification for a program automatically. Various heuristics are used and several approaches are tried, each realized as a separate Frama-C visitor.
+Our method is based on the value analysis of Frama-C, which can bound the possible values of program variables at different program points. In this way we can proceed to deduce necessary pre-conditions to prevent run-time errors in a program, bound the return values of functions, and realize a memory model specification for a program automatically.
+
+The implementation uses a Frama-C visitor to collect accessed and mutated globals, pointer argument usage, function argument ranges, and simple arithmetic pointer mutations. Emission modules then add ACSL clauses based on the collected state and Eva results.
 
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
