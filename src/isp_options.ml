@@ -55,3 +55,21 @@ module Print = Self.False (struct
   let help =
     "When on (off by default), the transformed source code will be printed."
 end)
+
+module MissingHelperContracts = Self.False (struct
+  let option_name = "-isp-missing-helper-contracts"
+
+  let help =
+    "When on (off by default), report helper functions that are reachable from \
+     functions with ACSL contracts but do not have contracts themselves."
+end)
+
+module MissingHelperContractsJson = Self.String (struct
+  let option_name = "-isp-missing-helper-contracts-json"
+  let default = ""
+  let arg_name = "file-name"
+
+  let help =
+    "Write the missing-helper-contract report as JSON to the given file. This \
+     also enables the missing-helper-contract analysis."
+end)

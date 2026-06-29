@@ -54,6 +54,10 @@ frama-c -isp test.c
 - Use ```-isp-print``` if you want the result to be printed.
 - Use ```-isp-print-file out.c``` if you want the result to be printed to file ```out.c```.
 - Use ```-isp-entry-point "function" ``` if you want to use a different function as the entry point for the analysis than the default ```main```.
+- Use ```-isp-missing-helper-contracts``` to report functions that are reachable
+  from contracted functions but do not have ACSL contracts themselves.
+- Use ```-isp-missing-helper-contracts-json report.json``` to write that report
+  as JSON for tools such as AutoDeduct.
                                              
 ## THEORY
 
