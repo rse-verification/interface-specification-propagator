@@ -1,0 +1,4 @@
+[kernel] Parsing isp_043_missing_helper_contract_duplicate_a.c (with preprocessing)
+[kernel] Parsing isp_043_missing_helper_contract_duplicate_b.c (with preprocessing)
+[isp] Missing helper contracts:
+[isp] helper at isp_043_missing_helper_contract_duplicate_a.c:6 (called by main)

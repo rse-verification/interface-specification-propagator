@@ -19,5 +19,11 @@
  *  SPDX-License-Identifier: GPL-2.0+
  *)
 
-let main () = if Isp_options.Enabled.get () then Isp_visitor.execute_isp ()
+let main () =
+  if
+    Isp_options.MissingHelperContracts.get ()
+    || Isp_options.MissingHelperContractsJson.get () <> ""
+  then Isp_missing_helpers.report ();
+  if Isp_options.Enabled.get () then Isp_visitor.execute_isp ()
+
 let () = Boot.Main.extend main
