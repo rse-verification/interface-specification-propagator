@@ -67,6 +67,49 @@ Our method is based on the value analysis of Frama-C, which can bound the possib
 
 The implementation uses a Frama-C visitor to collect accessed and mutated globals, pointer argument usage, function argument ranges, and simple arithmetic pointer mutations. Emission modules then add ACSL clauses based on the collected state and Eva results.
 
+## Architecture and module responsibilities
+
+ISP has two related execution paths. The normal `-isp` path runs Eva and
+propagates auxiliary ACSL annotations. The `-isp-missing-helper-contracts`
+path builds a call graph and reports reachable functions that do not have ACSL
+contracts. The JSON form of that report is consumed by tools such as
+AutoDeduct.
+
+```text
+Frama-C input with ACSL contracts
+  |
+  +-- isp_main / isp_options
+  |     |
+  |     +-- -isp
+  |     |     `-> isp_visitor + Eva
+  |     |           `-> isp_local_states
+  |     |                 `-> isp_emitters -> generated ACSL project/output
+  |     |
+  |     `-- -isp-missing-helper-contracts[-json]
+  |           `-> isp_missing_helpers -> text/JSON report
+```
+
+The main source modules have the following responsibilities:
+
+- `isp_main.ml`: Frama-C plug-in entry point; dispatches propagation and
+  missing-helper reporting.
+- `isp_options.ml`: registers the ISP-specific Frama-C options.
+- `isp_visitor.ml`: traverses the Frama-C AST, uses Eva results, and starts
+  annotation generation for each visited function.
+- `isp_local_states.ml`: stores the temporary state collected during a visit,
+  including global accesses, pointer arguments, and mutations.
+- `isp_emitters.ml`: converts collected state and Eva values into ACSL
+  `requires`, `ensures`, and `assigns` clauses.
+- `isp_utils.ml` and `isp_lval.ml`: provide expression/lvalue conversion,
+  comparison, array/struct, and ACSL-term helper functions.
+- `isp_missing_helpers.ml`: builds the contract-reachability call graph and
+  emits the text or JSON missing-helper report.
+
+The generated annotations are placed in a Frama-C project created from the
+visitor, or written to the requested output, so the original source is not
+rewritten by the propagation path. WP can then use the generated ACSL during
+deductive verification.
+
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
 - [Improving the Synthesis of Annotations for Partially Automated Deductive Verification](https://kth.diva-portal.org/smash/get/diva2:1801578/FULLTEXT01.pdf) by Hovig Manjikian
