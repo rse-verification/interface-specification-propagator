@@ -108,7 +108,7 @@ let lval_to_address_term lv =
   Logic_utils.mk_logic_AddrOf tl (Cil.typeOfTermLval tl)
 
 let lval_to_term lv =
-  let e = Cil.new_exp ~loc:Cil_datatype.Location.unknown (Lval lv) in
+  let e = Cil.new_exp ~loc:Fileloc.unknown (Lval lv) in
   Logic_utils.expr_to_term e
 
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
