@@ -193,7 +193,7 @@ class interface_specifications_propagator _ep prj =
                 (* Store read global variables*)
                 Visitor.visitFramacExpr self#frama_c_plain_copy e
                 |> Isp_local_states.Utils.process_expression
-            | Call (lv_o, e, _, _) -> (
+            | Call (lv_o, lh, _, _) -> (
                 p_debug "· The instruction is of type Call.";
                 (match lv_o with
                 | None -> ()
