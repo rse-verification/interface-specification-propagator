@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "$script_dir/.." && pwd)"
+
+image="${AUTO_DEDUCT_IMAGE:-auto-deduct}"
+docker_display="${AUTO_DEDUCT_DISPLAY:-host.docker.internal:0}"
+
+if [ "$#" -eq 0 ]; then
+  set -- tests/general/isp_039_pointer_struct_limits.c
+fi
+
+if [ "$(uname -s)" = "Darwin" ]; then
+  if [ ! -x /opt/X11/bin/xhost ]; then
+    echo "XQuartz is required. Install it with: brew install --cask xquartz" >&2
+    exit 1
+  fi
+
+  if ! pgrep -fq '/opt/X11/bin/Xquartz'; then
+    open -a XQuartz
+    sleep 2
+  fi
+
+  if [ "$(defaults read org.xquartz.X11 nolisten_tcp 2>/dev/null || echo 1)" != "0" ]; then
+    cat >&2 <<'EOF'
+XQuartz is not configured to accept network clients.
+Enable XQuartz -> Settings/Preferences -> Security -> Allow connections from network clients,
+or run this on the macOS host and restart XQuartz:
+
+  defaults write org.xquartz.X11 nolisten_tcp -bool false
+EOF
+    exit 1
+  fi
+
+  DISPLAY=:0 /opt/X11/bin/xhost + 127.0.0.1 >/dev/null
+fi
+
+docker_args=(--rm)
+if [ -t 0 ]; then
+  docker_args=(-it --rm)
+fi
+
+docker run "${docker_args[@]}" \
+  --env DISPLAY="$docker_display" \
+  --env AUTO_DEDUCT_GUI_TIMEOUT="${AUTO_DEDUCT_GUI_TIMEOUT:-}" \
+  -v "$repo_root":/work \
+  -w /work \
+  "$image" \
+  /usr/bin/bash -l -c '
+set -euo pipefail
+dune build @install
+
+if [ -n "${AUTO_DEDUCT_GUI_TIMEOUT:-}" ]; then
+  timeout "$AUTO_DEDUCT_GUI_TIMEOUT" dune exec -- frama-c-gui -no-check -autoload-plugins -isp "$@"
+else
+  exec dune exec -- frama-c-gui -no-check -autoload-plugins -isp "$@"
+fi
+' frama-c-gui "$@"

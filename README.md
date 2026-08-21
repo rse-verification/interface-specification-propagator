@@ -110,6 +110,32 @@ visitor, or written to the requested output, so the original source is not
 rewritten by the propagation path. WP can then use the generated ACSL during
 deductive verification.
 
+## Diagnostics and failure handling
+
+ISP keeps Frama-C's normal warning and failure behaviour, but prefixes the
+messages it owns with stable identifiers. This makes warnings searchable in
+ptests and CI logs and distinguishes an intentionally unsupported construct
+from an internal state failure.
+
+| ID | Meaning | Typical action |
+| --- | --- | --- |
+| `ISP-W001` | Unsupported global or instruction construct | Review the generated annotations for the affected construct. |
+| `ISP-W002` | Unreachable function or statement | Check the selected entry point and call graph. |
+| `ISP-W003` | Unsupported pointer, dereference, or memory lvalue | Simplify the expression or review `assigns`/`ensures` clauses. |
+| `ISP-W004` | Unsupported expression, type, or Eva term | Review the generated contract and the source expression. |
+| `ISP-W005` | Loop, exception, or unspecified control flow is not covered | Supply loop invariants where needed and review the output. |
+| `ISP-W006` | NaN or incomplete numeric range | Review the corresponding range contract. |
+| `ISP-W007` | Eva cannot evaluate a pointer term | Review the generated contract; no clause is emitted for that term. |
+| `ISP-W008` | Frama-C has no global access summary | Review the generated `assigns` clause. |
+| `ISP-E001`-`ISP-E007` | Input construct cannot be converted or emitted | Inspect the input construct and the surrounding diagnostic. |
+| `ISP-E008`-`ISP-E009` | Required visitor/Eva state is missing | Retry with the same input; report the diagnostic if it persists. |
+
+Warnings do not make ISP abort, but they mean the generated specification may
+be partial and must be reviewed before relying on it in WP. Fatal diagnostics
+are reported through Frama-C's usual non-zero failure path, with the stable ID
+included in the message. ISP does not assign a separate process exit-code
+scheme; callers should use Frama-C's exit status together with these IDs.
+
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
 - [Improving the Synthesis of Annotations for Partially Automated Deductive Verification](https://kth.diva-portal.org/smash/get/diva2:1801578/FULLTEXT01.pdf) by Hovig Manjikian

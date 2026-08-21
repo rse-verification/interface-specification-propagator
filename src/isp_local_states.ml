@@ -58,8 +58,8 @@ module Visitor_State : Visitor_State = struct
     match !frama_c_plain_copy with
     | Some pc -> pc
     | None ->
-        failwith
-          "Isp: there must be a frama_c_plain_copy in the state at this point!"
+        Isp_diagnostics.failure "ISP-E008"
+          "The Frama-C visitor state is unavailable; rerun ISP with the same input and report the failure if it persists."
 
   let update_ki new_ki = ki := new_ki
   let update_frama_c_plain_copy new_v = frama_c_plain_copy := Some new_v
@@ -73,7 +73,8 @@ module Visitor_State : Visitor_State = struct
     match !fn_entry_request with
     | Some er -> er
     | None ->
-        failwith "Isp: there must be an entry_request in the state at this point!"
+        Isp_diagnostics.failure "ISP-E009"
+          "The Eva entry request is unavailable; rerun ISP with the same input and report the failure if it persists."
 
   let update_fn_entry_request req = fn_entry_request := Some req
   let clear_fn_entry_request () = fn_entry_request := None
@@ -410,9 +411,8 @@ module Utils = struct
               match e.enode with
               | Lval (Var vi, _) -> vi
               | _ ->
-                  failwith
-                    "Isp: The pointer can only contain an expression of type \
-                     lval at this point."
+                  Isp_diagnostics.failure "ISP-E005"
+                    "A pointer expression is not a supported lvalue; simplify the expression or review the generated annotations."
             in
             if
               Visited_function_arguments.ptr_arg_ids_contain vi.vid
@@ -429,7 +429,8 @@ module Utils = struct
     | None ->
         (* TODO: This warning seems to be incorrect. The function is not unknown,
            it just happens to NOT access or mutate any global variables. *)
-        p_warning "A function call to an unknown function: %s"
+        p_warning
+          "[ISP-W008] Frama-C has no global access summary for function %s; review the generated assigns clause."
           (Kernel_function.get_name kf)
     | Some access_and_mutations ->
         List.iter
@@ -470,9 +471,8 @@ module Utils = struct
               match e.enode with
               | Lval (Var vi, _) -> vi
               | _ ->
-                  failwith
-                    "Isp: The pointer can only contain an expression of type \
-                     lval at this point."
+                  Isp_diagnostics.failure "ISP-E005"
+                    "A pointer expression is not a supported lvalue; simplify the expression or review the generated annotations."
             in
             if
               Visited_function_arguments.ptr_arg_ids_contain vi.vid

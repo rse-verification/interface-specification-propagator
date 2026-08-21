@@ -55,7 +55,10 @@ let rec extract_lvals_from_exp frama_c_visitor e result =
       p_debug "·· CastE is found in the expression." ~level:2;
       extract_lvals_from_exp frama_c_visitor ec result
   | _ ->
-      p_warning "Expression %a is not supported!" Printer.pp_exp e;
+      Isp_diagnostics.warning "ISP-W004"
+        (Format.asprintf
+           "Expression %a is not supported; generated annotations may be incomplete."
+           Printer.pp_exp e);
       result
 
 let extract_lvals_from_exp frama_c_visitor e =
@@ -69,8 +72,12 @@ let get_enum_value ei =
       | CInt64 (i, _, _) ->
           p_debug "··· The Const is of type Int64." ~level:3;
           Format.sprintf "%d" (Integer.to_int_exn i)
-      | _ -> failwith "Isp: Enum Const value not covered.")
-  | _ -> failwith "Isp: Enum not covered."
+      | _ ->
+          Isp_diagnostics.failure "ISP-E001"
+            "Enum constant value is not supported; review the generated annotations.")
+  | _ ->
+      Isp_diagnostics.failure "ISP-E001"
+        "Enum value is not supported; review the generated annotations."
 
 let rec get_index_as_string e =
   match e.enode with
@@ -84,25 +91,32 @@ let rec get_index_as_string e =
           p_debug "·· The type of the Const is Enum." ~level:2;
           get_enum_value ei
       | _ ->
-          failwith
-            "Isp: Indexes of arrays can only be integers.Other expressions are \
-             not supported")
+          Isp_diagnostics.failure "ISP-E002"
+            "Array indexes must be integer expressions; review the input and generated annotations.")
   | CastE (_, exp) ->
       p_debug "·· The index is of type CastE." ~level:2;
       get_index_as_string exp
   | Lval (lh, _) -> (
       match lh with
       | Var vi -> vi.vname
-      | Mem _ -> failwith "Isp: Mem is not supported.")
+      | Mem _ ->
+          Isp_diagnostics.failure "ISP-E003"
+            "Memory-based array indexes are not supported; simplify the index or review the output.")
   | _ ->
-      p_warning "Expression %a is not supported!" Printer.pp_exp e;
-      failwith "Isp: Should not end up here!"
+      Isp_diagnostics.warning "ISP-W004"
+        (Format.asprintf
+           "Expression %a is not supported; generated annotations may be incomplete."
+           Printer.pp_exp e);
+      Isp_diagnostics.failure "ISP-E004"
+        "The unsupported expression reached index extraction; review the input and generated annotations."
 
 let create_string_of_lval_name (lh, o) =
   let vi =
     match lh with
     | Var v -> v
-    | Mem _ -> failwith "Isp: Mem is not implemented!"
+    | Mem _ ->
+        Isp_diagnostics.failure "ISP-E003"
+          "Memory lvalues are not supported; review the generated annotations."
   in
   let offset_string =
     match o with
@@ -156,7 +170,7 @@ let get_lvals_with_const_index (lh, o) req =
   match lh with
   | Var vi -> (
       match o with
-      | Index ({ enode = Lval lv_idx; _ }, _) ->
+      | Index ({ enode = Lval lv_idx; _ }, tail) ->
           let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req) in
           let i : Ival.t = Result.get_ok res in
           let values =
@@ -182,18 +196,23 @@ let get_lvals_with_const_index (lh, o) req =
               let dummy_e =
                 Cil.dummy_exp (Const (CInt64 (value, IInt, None)))
               in
-              let new_o = Index (dummy_e, NoOffset) in
+              let new_o = Index (dummy_e, tail) in
               (name, (lh, new_o)) :: list)
             [] values
-      | _ -> failwith "Isp: should not reach here! (get_lvals)")
-  | _ -> failwith "Isp: should not reach here! (get_lvals)"
+      | _ ->
+          Isp_diagnostics.failure "ISP-E005"
+            "A non-lvalue array index reached lvalue extraction; report the input construct.")
+  | _ ->
+      Isp_diagnostics.failure "ISP-E005"
+        "A non-variable lvalue reached lvalue extraction; report the input construct."
 
 
 let rec find_field_offsets typ =
   match (Ast_types.unroll typ).tnode with
   | TNamed _ -> 
     (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
-    failwith "Trying to emit annotations for non-unrolled type."
+    Isp_diagnostics.failure "ISP-E006"
+      "Annotations cannot be emitted for a non-unrolled type; review the type definition."
   | TComp (compinfo) ->
       List.flatten 
         (List.map
@@ -202,3 +221,11 @@ let rec find_field_offsets typ =
             List.map (fun f -> Field (fieldinfo, f)) o)
           (Option.value compinfo.cfields ~default:[]))
   | _ -> [NoOffset]
+
+let rec append_offset prefix suffix =
+  match prefix with
+  | NoOffset -> suffix
+  | Field (fieldinfo, tail) ->
+      Field (fieldinfo, append_offset tail suffix)
+  | Index (index, tail) ->
+      Index (index, append_offset tail suffix)
