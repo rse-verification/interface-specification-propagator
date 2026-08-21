@@ -33,7 +33,6 @@
   No logical properties have been reached by the analysis.
   ----------------------------------------------------------------------------
 [isp] Eva analysis is completed.
-[isp] Warning: [ISP-W004] Arguments of Enum type (PARAMETER) are not implemented; generated annotations may be incomplete.
 [isp] Warning: [ISP-W002] Statement case TEMPERATURE: read_db(TEMPERATURE); is unreachable; no propagated annotation is generated for it.
 [isp] Warning: [ISP-W002] Statement break; is unreachable; no propagated annotation is generated for it.
 [isp] Warning: [ISP-W002] Statement case HUMIDITY: read_db(HUMIDITY); is unreachable; no propagated annotation is generated for it.
@@ -112,4 +111,5 @@ void main(void)
   }
   return;
 }
+
 
