@@ -235,20 +235,26 @@ module Auxiliary = struct
                   let pu = Logic_const.prel (Rle, term, u) in
                   let p = Logic_const.pand (pl, pu) in
                   if nan then
-                    p_warning "The range of values for %a contain a NaN!"
+                    p_warning
+                      "[ISP-W006] The range of values for %a contains NaN; review the generated contract."
                       Printer.pp_term term;
                   Logic_const.new_predicate p
               in
               [ ip ]
           | _ ->
-              p_warning "The values of %a is NaN!" Printer.pp_term term;
+              p_warning
+                "[ISP-W006] The values of %a contain NaN; review the generated contract."
+                Printer.pp_term term;
               [])
         else (
-          p_warning "Unknown type for the range!";
+          p_warning
+            "[ISP-W004] The term range has an unknown type; review the generated contract.";
           [])
       in
       if List.length ip_list = 0 then
-        p_warning "Analysis for term %a is not implemented!" Printer.pp_term term
+        p_warning
+          "[ISP-W004] Analysis for term %a is not implemented; review the generated contract."
+          Printer.pp_term term
       else
         match spec_type with
         | Ensures ->
@@ -266,11 +272,11 @@ module Auxiliary = struct
                    ip_list)
               filling_actions
         | _ ->
-            failwith "Isp: Only Ensures and Requires are currently implemented!"
+            Isp_diagnostics.failure "ISP-E007"
+              "Only ensures and requires annotations can be emitted; review the input contract."
     else
       p_warning
-        "The term %a is a pointer! Eva can't evaluate this, and thus no \
-         annotations are created for this term."
+        "[ISP-W007] The term %a is a pointer and Eva cannot evaluate it; no annotation is created. Review the generated contract."
         Printer.pp_term term
 
   (** Add 'spec_type' annotations for the given lval to the infered behavior
@@ -281,15 +287,18 @@ module Auxiliary = struct
     match unrolled_typ.tnode with
     | TNamed _ -> 
       (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
-      failwith "Trying to emit annotations for non-unrolled type."
+      Isp_diagnostics.failure "ISP-E006"
+        "Annotations cannot be emitted for a non-unrolled type; review the type definition."
     | TComp _ ->
-        let (lhost, _) = lvalue in
+        let (lhost, base_offset) = lvalue in
         let offsets = Isp_utils.find_field_offsets unrolled_typ in
         p_debug "···· number of found offsets %i" (List.length offsets) ~level:4;
         List.iter 
           (fun offset ->
-            let term = to_term (lhost, offset) in
-            let eva_result = Isp_utils.get_eva_analysis_for_lval req (lhost, offset) in
+            let full_offset = Isp_utils.append_offset base_offset offset in
+            let field_lvalue = (lhost, full_offset) in
+            let term = to_term field_lvalue in
+            let eva_result = Isp_utils.get_eva_analysis_for_lval req field_lvalue in
             emit_eva_result_of_term spec_type term eva_result new_kf filling_actions)
           offsets
     | _ ->

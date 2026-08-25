@@ -42,28 +42,35 @@ class interface_specifications_propagator _ep prj =
           p_debug "GCompTag is found: %s." ci.cname;
           JustCopy
       | GCompTagDecl (_, _) ->
-          p_warning "GCompTagDecl is not covered!";
+          p_warning
+            "[ISP-W001] GCompTagDecl is not covered; generated annotations may be incomplete.";
           JustCopy
       | GEnumTag (ei, _) ->
           p_debug "GEnumTag is Found: %s." ei.ename;
           JustCopy
       | GEnumTagDecl (_, _) ->
-          p_warning "GEnumTagDecl is not covered!";
+          p_warning
+            "[ISP-W001] GEnumTagDecl is not covered; generated annotations may be incomplete.";
           JustCopy
       | GVarDecl (_, _) ->
-          p_warning "GVarDecl is not covered!";
+          p_warning
+            "[ISP-W001] Global variable declarations are not covered; generated annotations may be incomplete.";
           JustCopy
       | GAsm (_, _) ->
-          p_warning "GAsm is not covered!";
+          p_warning
+            "[ISP-W001] Global assembly is not covered; generated annotations may be incomplete.";
           JustCopy
       | GPragma (_, _) ->
-          p_warning "GPragma is not covered!";
+          p_warning
+            "[ISP-W001] Pragmas are not covered; generated annotations may be incomplete.";
           JustCopy
       | GText _ ->
-          p_warning "GText is not covered!";
+          p_warning
+            "[ISP-W001] Global text is not covered; generated annotations may be incomplete.";
           JustCopy
       | GAnnot (_, _) ->
-          p_warning "GAnnot is not covered!";
+          p_warning
+            "[ISP-W001] Global annotations are not covered; generated annotations may be incomplete.";
           JustCopy
       | GVar (vi, _, _) ->
           p_debug "Processing global variable: %a." Printer.pp_varinfo vi;
@@ -79,7 +86,9 @@ class interface_specifications_propagator _ep prj =
           p_debug "Processing global function: %s" fd.svar.vname;
           let kf = Option.get self#current_kf in
           if not (Eva.Results.is_called kf) then (
-            p_warning "Unreachable function: %s" fd.svar.vname;
+            p_warning
+              "[ISP-W002] Function %s is unreachable from the selected entry point; no propagated contract is generated."
+              fd.svar.vname;
             JustCopy)
           (* else if fd.svar.vname = ep then
             (
@@ -103,18 +112,16 @@ class interface_specifications_propagator _ep prj =
                       "·· Id (%d) of pointer argument %a added to \
                        Visited_function_arguments."
                       vi.vid Printer.pp_varinfo vi ~level:2
-                | TInt _ | TFloat _ | TComp _ ->
+                | TInt _ | TFloat _ | TComp _ | TEnum _ ->
                     Isp_local_states.Visited_function_arguments.add_non_ptr_arg
                       vi.vid;
                     p_debug
-                      "·· Id (%d) of int/float argument %a added to \
+                      "·· Id (%d) of scalar/enum argument %a added to \
                        Visited_function_arguments."
                       vi.vid Printer.pp_varinfo vi ~level:2                  
-                | TEnum _ ->
-                    p_warning "Arguments of Enum type (%a) are not implemented!"
-                      Printer.pp_typ vi.vtype
                 | _ ->
-                    p_warning "Arguments with type %a are not implemented!"
+                    p_warning
+                      "[ISP-W004] Arguments with type %a are not implemented; generated annotations may be incomplete."
                       Printer.pp_typ vi.vtype)
               fd.sformals;
             DoChildren)
@@ -126,7 +133,9 @@ class interface_specifications_propagator _ep prj =
         Eva.Results.before_kinstr self#current_kinstr
         |> Isp_local_states.Visitor_State.update_fn_entry_request;
       if not (Eva.Results.is_reachable s) then (
-        p_warning "Unreachable statement: %a" Printer.pp_stmt s;
+        p_warning
+          "[ISP-W002] Statement %a is unreachable; no propagated annotation is generated for it."
+          Printer.pp_stmt s;
         JustCopy)
       else
         match s.skind with
@@ -150,7 +159,8 @@ class interface_specifications_propagator _ep prj =
                       p_debug
                         "· The Var is one of the pointer arguments of the \
                          current function.";
-                      p_warning "External pointer mutation is not emplemented!")
+                      p_warning
+                        "[ISP-W003] Mutation through a pointer argument is not implemented; review the generated assigns/ensures clauses.")
                 | Mem e_inner, _ -> (
                     p_debug
                       "· The left side of the Set is of type Mem (pointer \
@@ -173,10 +183,11 @@ class interface_specifications_propagator _ep prj =
                               Isp_local_states.Visited_function_arguments
                               .add_mut_ptr_arg_to_emit lv)
                         | Mem _, _ ->
-                            p_warning "Nested pointers are not implemented!")
+                            p_warning
+                              "[ISP-W003] Nested pointer mutation is not implemented; review the generated assigns/ensures clauses.")
                     | _ ->
                         p_warning
-                          "Dereferencing expression %a is not implemented!"
+                          "[ISP-W003] Dereferencing expression %a is not implemented; review the generated assigns/ensures clauses."
                           Printer.pp_exp e_inner));
                 Isp_local_states.Utils.process_simple_arithmetic_mutation lv e;
                 (* Store read global variables*)
@@ -193,8 +204,7 @@ class interface_specifications_propagator _ep prj =
                       |> Isp_local_states.Global_Vars.Mutated_Global_Vars.add)
                 | Some (Mem _, _) ->
                     p_warning
-                      "The lval of the Call is of type Mem. Not implemented \
-                       yet!");
+                      "[ISP-W003] A call result is stored through a memory lvalue; review the generated annotations.");
 
                 match e.enode with
                 | Lval lv -> (
@@ -208,11 +218,15 @@ class interface_specifications_propagator _ep prj =
                             let kf = Globals.Functions.find_by_name vi.vname in
                             Isp_local_states.Utils
                             .add_function_access_and_mutations kf
-                        | _ -> p_warning "Unknown type of Var")
+                        | _ ->
+                            p_warning
+                              "[ISP-W004] The called variable has an unsupported type; review the generated annotations.")
                     | Mem _, _ ->
-                        p_warning "The Lval is of type Mem. (not implemented).")
+                        p_warning
+                          "[ISP-W003] A function pointer call target is a memory lvalue; review the generated annotations.")
                 | _ ->
-                    p_warning "The expression: %a is not implemented yet!"
+                    p_warning
+                      "[ISP-W004] The call expression %a is not implemented; review the generated annotations."
                       Printer.pp_exp e)
             | Local_init (_, li, _) -> (
                 p_debug "· The instruction is of type Local_init.";
@@ -227,8 +241,7 @@ class interface_specifications_propagator _ep prj =
                     | CompoundInit _ ->
                         (* if the right side is a structure, a union or an array *)
                         p_warning
-                          "The right side of the Local_init is CompoundInit. \
-                           (Not implemented)")
+                          "[ISP-W004] Compound initialization is not implemented; review the generated annotations.")
                 | ConsInit (vi, e_l, _) ->
                     p_debug
                       "· The right side of the Local_init is a function call.";
@@ -242,10 +255,12 @@ class interface_specifications_propagator _ep prj =
                     let kf = Globals.Functions.find_by_name vi.vname in
                     Isp_local_states.Utils.add_function_access_and_mutations kf)
             | Asm (_, _, _, _) ->
-                p_warning "The Asm instruction is not implemented!"
+                p_warning
+                  "[ISP-W001] Assembly instructions are not implemented; generated annotations may be incomplete."
             | Skip _ -> ()
             | Code_annot (_, _) ->
-                p_warning "The Code_annot instruction is not implemented!");
+                p_warning
+                  "[ISP-W004] Code annotations in instructions are not implemented; review the generated annotations.");
             JustCopy
         | Return (exp_opt, _) ->
             (* TODO: Implement a solution for multiple return instructions in a function. *)
@@ -273,7 +288,8 @@ class interface_specifications_propagator _ep prj =
             p_debug "· The statemen is a Break.";
             JustCopy
         | Continue (_, _) ->
-            p_warning "Continue is not covered!";
+            p_warning
+              "[ISP-W005] Continue statements are not covered; generated annotations may be incomplete. Add or review loop invariants.";
             JustCopy
         | If (e, _, _, _) ->
             p_debug "· The statemen is an if-statement.";
@@ -286,25 +302,31 @@ class interface_specifications_propagator _ep prj =
             |> Isp_local_states.Utils.process_expression;
             DoChildren
         | Loop (_, _, (_, _), _, _) ->
-            p_warning "Loop is not covered!";
+            p_warning
+              "[ISP-W005] Loops are not covered; add loop invariants and review the generated annotations.";
             JustCopy
         | Block _ ->
             p_debug "· Block is found.";
             DoChildren
         | UnspecifiedSequence _ ->
-            p_warning "UnspecifiedSequence is not covered!";
+            p_warning
+              "[ISP-W005] Unspecified statement sequences are not covered; generated annotations may be incomplete.";
             JustCopy
         | Throw (_, (_, _)) ->
-            p_warning "Throw is not covered!";
+            p_warning
+              "[ISP-W005] Throw statements are not covered; generated annotations may be incomplete.";
             JustCopy
         | TryCatch (_, _, (_, _)) ->
-            p_warning "TryCatch is not covered!";
+            p_warning
+              "[ISP-W005] TryCatch statements are not covered; generated annotations may be incomplete.";
             JustCopy
         | TryFinally (_, _, (_, _)) ->
-            p_warning "TryFinally is not covered!";
+            p_warning
+              "[ISP-W005] TryFinally statements are not covered; generated annotations may be incomplete.";
             JustCopy
         | TryExcept (_, (_, { eloc = _, _; _ }), _, (_, _)) ->
-            p_warning "TryExcept is not covered!";
+            p_warning
+              "[ISP-W005] TryExcept statements are not covered; generated annotations may be incomplete.";
             JustCopy
   end
 

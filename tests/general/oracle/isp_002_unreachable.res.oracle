@@ -16,4 +16,4 @@
   No logical properties have been reached by the analysis.
   ----------------------------------------------------------------------------
 [isp] Eva analysis is completed.
-[isp] Warning: Unreachable function: add
+[isp] Warning: [ISP-W002] Function add is unreachable from the selected entry point; no propagated contract is generated.

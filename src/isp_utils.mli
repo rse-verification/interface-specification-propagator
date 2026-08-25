@@ -60,3 +60,6 @@ val find_field_offsets : Cil_types.typ -> Cil_types.offset list
 (** Generates a list of offsets for all fields in a struct recursively, i.e.
     if a field is itself a struct, offsets for the fields in that structure
     will also be generated. *)
+
+val append_offset : Cil_types.offset -> Cil_types.offset -> Cil_types.offset
+(** Appends a field/array offset to an existing lvalue offset. *)
