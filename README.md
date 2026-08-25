@@ -129,6 +129,7 @@ from an internal state failure.
 | `ISP-W008` | Frama-C has no global access summary | Review the generated `assigns` clause. |
 | `ISP-E001`-`ISP-E007` | Input construct cannot be converted or emitted | Inspect the input construct and the surrounding diagnostic. |
 | `ISP-E008`-`ISP-E009` | Required visitor/Eva state is missing | Retry with the same input; report the diagnostic if it persists. |
+| `ISP-E010` | An array is nested inside a struct during recursive field-offset expansion | ISP stops with a clear unsupported-input diagnostic; simplify the aggregate or review the contract manually. |
 
 Warnings do not make ISP abort, but they mean the generated specification may
 be partial and must be reviewed before relying on it in WP. Fatal diagnostics
@@ -144,6 +145,11 @@ For reference, these are the Master's thesis reports by Skantz and Manjikian:
 
 C language limitations:
 * Does currently not support complex expressions for indexing arrays, pointer arithmetic other than array indexing, nested pointers, or nested structs.
+* Recursive auxiliary annotation generation does not currently support arrays
+  contained in struct fields. In particular, repeated aggregate paths such as
+  `records[slot].f1[i].f2[j]` are outside the supported boundary. The merged
+  enum-indexed struct support covers flat struct fields after an enum-indexed
+  array access; it does not cover arbitrary nested `Field -> Index` paths.
 * Does not support programs with local static variables.
 
 Regarding ACSL, support exist for requires, ensures, and assign clauses, as well as the behavior construct. Supports most ACSL operators (implication, nested inequalities, etc.), and the built-in predicates \valid and \valid_read.

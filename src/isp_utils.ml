@@ -213,6 +213,9 @@ let rec find_field_offsets typ =
     (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
     Isp_diagnostics.failure "ISP-E006"
       "Annotations cannot be emitted for a non-unrolled type; review the type definition."
+  | TArray _ ->
+      Isp_diagnostics.unsupported "ISP-E010"
+        "Nested arrays inside structs are not supported during recursive field-offset expansion; simplify the aggregate or review the contract manually."
   | TComp (compinfo) ->
       List.flatten 
         (List.map
