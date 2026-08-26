@@ -127,15 +127,23 @@ from an internal state failure.
 | `ISP-W006` | NaN or incomplete numeric range | Review the corresponding range contract. |
 | `ISP-W007` | Eva cannot evaluate a pointer term | Review the generated contract; no clause is emitted for that term. |
 | `ISP-W008` | Frama-C has no global access summary | Review the generated `assigns` clause. |
+| `ISP-W009` | Arithmetic safety inference skipped for a repeatedly assigned lvalue | Add or review the necessary overflow/underflow preconditions manually. |
 | `ISP-E001`-`ISP-E007` | Input construct cannot be converted or emitted | Inspect the input construct and the surrounding diagnostic. |
 | `ISP-E008`-`ISP-E009` | Required visitor/Eva state is missing | Retry with the same input; report the diagnostic if it persists. |
 | `ISP-E010` | An array is nested inside a struct during recursive field-offset expansion | ISP stops with a clear unsupported-input diagnostic; simplify the aggregate or review the contract manually. |
+| `ISP-E011` | Eva cannot finitely resolve a direct variable array index, or resolving it would expand more than 1024 values | Constrain the index range or review the affected contract manually. |
 
 Warnings do not make ISP abort, but they mean the generated specification may
 be partial and must be reviewed before relying on it in WP. Fatal diagnostics
 are reported through Frama-C's usual non-zero failure path, with the stable ID
 included in the message. ISP does not assign a separate process exit-code
 scheme; callers should use Frama-C's exit status together with these IDs.
+
+The `ISP-E011` guard currently applies to direct lvalue index forms such as
+`array[index]`. Casts, arithmetic index expressions, memory-based indices, and
+variable indices deeper in an offset chain are not covered by this expansion
+path. The 1024-value limit bounds generated-contract size; it does not check
+that every Eva value is within the array's declared extent.
 
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz

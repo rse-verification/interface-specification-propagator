@@ -61,8 +61,8 @@ module Auxiliary = struct
   (** Adds required [\valid_read] of the accessed global variables which have
       not been mutated to the infered behavior contract of the given function. *)
   let emit_req_valid_read new_kf filling_actions =
-    Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun name lv ->
-        if not (Isp_local_states.Global_Vars.Mutated_Global_Vars.contains name)
+    Isp_local_states.Global_Vars.Accessed_Global_Vars.iter (fun _name lv ->
+        if not (Isp_local_states.Global_Vars.Mutated_Global_Vars.contains lv)
         then (
           let term = Isp_utils.lval_to_address_term lv in
           let ip : identified_predicate =
@@ -189,9 +189,9 @@ module Auxiliary = struct
   (** Add ensures for the given term with the eva analysis results to the
       infered behavior contract of the given function. *)
   let emit_eva_result_of_term spec_type term eva_result new_kf filling_actions =
-    (* This checks that eva_result is a properly generated ivalue and not an error which it will be if the term is a pointer. *)
-    if Result.is_ok eva_result then
-      let i : Ival.t = Result.get_ok eva_result in
+    match eva_result with
+    | Ok (i : Ival.t) ->
+      let diagnostic_emitted = ref false in
       let ip_list =
         if Ival.is_int i then (
           p_debug "··· The range is of type int." ~level:3;
@@ -205,24 +205,46 @@ module Auxiliary = struct
             [ ip ])
           else if Ival.is_small_set i then (
             p_debug "··· The range contains a small set of values." ~level:3;
-            let ivs = Option.get (Ival.project_small_set i) in
-            let ip = Isp_utils.create_subset_ip term ivs in
-            [ ip ])
+            match Ival.project_small_set i with
+            | Some ivs -> [ Isp_utils.create_subset_ip term ivs ]
+            | None ->
+                diagnostic_emitted := true;
+                Isp_diagnostics.warning "ISP-W006"
+                  (Format.asprintf
+                     "Eva reported a finite range for %a but did not expose its values; no range annotation is emitted."
+                     Printer.pp_term term);
+                [])
           else (
             p_debug "··· The range contains is an interval of values." ~level:3;
-            let lower_bound = Option.get (Ival.min_int i) in
-            let upper_bound = Option.get (Ival.max_int i) in
-            let lower_term = Logic_const.tint lower_bound in
-            let pl : predicate = Logic_const.prel (Rge, term, lower_term) in
-            let ipl : identified_predicate = Logic_const.new_predicate pl in
-            let upper_term = Logic_const.tint upper_bound in
-            let pu : predicate = Logic_const.prel (Rle, term, upper_term) in
-            let ipu : identified_predicate = Logic_const.new_predicate pu in
-            [ ipl; ipu ]))
+            match (Ival.min_int i, Ival.max_int i) with
+            | Some lower_bound, Some upper_bound ->
+                let lower_term = Logic_const.tint lower_bound in
+                let pl : predicate = Logic_const.prel (Rge, term, lower_term) in
+                let ipl : identified_predicate =
+                  Logic_const.new_predicate pl
+                in
+                let upper_term = Logic_const.tint upper_bound in
+                let pu : predicate = Logic_const.prel (Rle, term, upper_term) in
+                let ipu : identified_predicate =
+                  Logic_const.new_predicate pu
+                in
+                [ ipl; ipu ]
+            | _ ->
+                diagnostic_emitted := true;
+                Isp_diagnostics.warning "ISP-W006"
+                  (Format.asprintf
+                     "Eva produced an unbounded integer range for %a; no range annotation is emitted."
+                     Printer.pp_term term);
+                []))
         else if Ival.is_float i then (
           p_debug "··· The range is of type floating-point." ~level:3;
           match Ival.min_and_max_float i with
           | Some (l, u), nan ->
+              if nan then
+                Isp_diagnostics.warning "ISP-W006"
+                  (Format.asprintf
+                     "The range of values for %a contains NaN; review the generated contract."
+                     Printer.pp_term term);
               let ip =
                 if l = u then
                   let v = Isp_utils.abstract_float_to_term_float l in
@@ -234,28 +256,27 @@ module Auxiliary = struct
                   let pl = Logic_const.prel (Rge, term, l) in
                   let pu = Logic_const.prel (Rle, term, u) in
                   let p = Logic_const.pand (pl, pu) in
-                  if nan then
-                    p_warning
-                      "[ISP-W006] The range of values for %a contains NaN; review the generated contract."
-                      Printer.pp_term term;
                   Logic_const.new_predicate p
               in
               [ ip ]
           | _ ->
+              diagnostic_emitted := true;
               p_warning
                 "[ISP-W006] The values of %a contain NaN; review the generated contract."
                 Printer.pp_term term;
               [])
         else (
+          diagnostic_emitted := true;
           p_warning
             "[ISP-W004] The term range has an unknown type; review the generated contract.";
           [])
       in
-      if List.length ip_list = 0 then
-        p_warning
-          "[ISP-W004] Analysis for term %a is not implemented; review the generated contract."
-          Printer.pp_term term
-      else
+      if List.length ip_list = 0 then (
+        if not !diagnostic_emitted then
+          p_warning
+            "[ISP-W004] Analysis for term %a is not implemented; review the generated contract."
+            Printer.pp_term term)
+      else (
         match spec_type with
         | Ensures ->
             let tk_ip_list = List.map (fun ip -> (Normal, ip)) ip_list in
@@ -273,8 +294,8 @@ module Auxiliary = struct
               filling_actions
         | _ ->
             Isp_diagnostics.failure "ISP-E007"
-              "Only ensures and requires annotations can be emitted; review the input contract."
-    else
+              "Only ensures and requires annotations can be emitted; review the input contract.")
+    | Error _ ->
       p_warning
         "[ISP-W007] The term %a is a pointer and Eva cannot evaluate it; no annotation is created. Review the generated contract."
         Printer.pp_term term
@@ -289,9 +310,6 @@ module Auxiliary = struct
       (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
       Isp_diagnostics.failure "ISP-E006"
         "Annotations cannot be emitted for a non-unrolled type; review the type definition."
-    | TArray _ ->
-        Isp_diagnostics.unsupported "ISP-E010"
-          "Nested arrays inside structs are not supported during recursive field-offset expansion; simplify the aggregate or review the contract manually."
     | TComp _ ->
         let (lhost, base_offset) = lvalue in
         let offsets = Isp_utils.find_field_offsets unrolled_typ in

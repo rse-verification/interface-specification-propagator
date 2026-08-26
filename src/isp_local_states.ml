@@ -85,7 +85,7 @@ module type Global_Vars = sig
   val contains : int -> bool
 
   module type Global_Vars_Hashtbl_Sig = sig
-    val contains : string -> bool
+    val contains : lval -> bool
     val is_empty : unit -> bool
     val add : lval -> unit
     val iter : (string -> lval -> unit) -> unit
@@ -111,40 +111,52 @@ module Global_Vars : Global_Vars = struct
     p_debug "·· Added global variable has id: %d." id
 
   module type Global_Vars_Hashtbl_Sig = sig
-    val contains : string -> bool
+    val contains : lval -> bool
     val is_empty : unit -> bool
     val add : lval -> unit
     val iter : (string -> lval -> unit) -> unit
     val clear : unit -> unit
   end
 
-  (** A hash table containing [key : string representation of name] [value : Cil_types.lval] of 
-    the global variables that has been read or mutated during the execution of the currently visited 
-    function.
-    Todo: Convert this into a set of lvals instead of a hashmap (*Requires significant rewrite to be worth it*)
-    *)
+  (** A table containing global variables read or mutated while visiting the
+      current function. The full printed lvalue preserves nested offsets, and
+      the [varinfo] id distinguishes same-named globals from different source
+      files. Each name maps to a bucket so the table keeps the stable ordering
+      of the original string-keyed implementation. *)
   module Global_Hashtbl = struct
-    let contains name hashtable =
+    let var_id = function Var vi, _ -> vi.vid | Mem _, _ -> -1
+
+    let contains lv hashtable =
+      let name = Isp_utils.create_string_of_lval_name lv in
+      let id = var_id lv in
       match Hashtbl.find_opt hashtable name with
       | None -> false
-      | Some _ -> true
+      | Some bucket -> List.exists (fun (stored_id, _) -> stored_id = id) bucket
 
     let is_empty hashtable = Hashtbl.length hashtable = 0
 
     let add lv ?tblname:(tbl="hashtable") hashtable =
+      let add_lval lv =
+        let name = Isp_utils.create_string_of_lval_name lv in
+        let id = var_id lv in
+        let bucket = Option.value (Hashtbl.find_opt hashtable name) ~default:[] in
+        let bucket =
+          (id, lv) :: List.filter (fun (stored_id, _) -> stored_id <> id) bucket
+        in
+        Hashtbl.replace hashtable name bucket;
+        p_debug "· %s is added to %s." name tbl
+      in
       if Isp_utils.is_array_with_lval_index lv then
         Visitor_State.get_ki ()
         |> Eva.Results.before_kinstr
         |> Isp_utils.get_lvals_with_const_index lv
-        |> List.iter (fun (name, lv) ->
-               Hashtbl.replace hashtable name lv;
-               p_debug "· %s is added to %s." name tbl)
-      else
-        let name = Isp_utils.create_string_of_lval_name lv in
-        Hashtbl.replace hashtable name lv;
-        p_debug "· %s is added to %s." name tbl
+        |> List.iter add_lval
+      else add_lval lv
 
-    let iter fn hashtable = Hashtbl.iter fn hashtable
+    let iter fn hashtable =
+      Hashtbl.iter
+        (fun name bucket -> List.iter (fun (_, lv) -> fn name lv) bucket)
+        hashtable
 
     let clear hashtable = Hashtbl.reset hashtable
   end
@@ -154,8 +166,10 @@ module Global_Vars : Global_Vars = struct
     function.
     *)
   module Accessed_Global_Vars = struct
-    let (accessed : (string, lval) Hashtbl.t) = Hashtbl.create 200
-    let contains name = Global_Hashtbl.contains name accessed
+    let (accessed : (string, (int * lval) list) Hashtbl.t) =
+      Hashtbl.create 200
+
+    let contains lv = Global_Hashtbl.contains lv accessed
     let is_empty () = Global_Hashtbl.is_empty accessed
     let add lv = Global_Hashtbl.add lv accessed ~tblname:"Accessed_Global_Vars"
     let iter fn = Global_Hashtbl.iter fn accessed
@@ -167,8 +181,10 @@ module Global_Vars : Global_Vars = struct
     function.
     *)
   module Mutated_Global_Vars = struct
-    let (mutated : (string, lval) Hashtbl.t) = Hashtbl.create 200
-    let contains name = Global_Hashtbl.contains name mutated
+    let (mutated : (string, (int * lval) list) Hashtbl.t) =
+      Hashtbl.create 200
+
+    let contains lv = Global_Hashtbl.contains lv mutated
     let is_empty () = Global_Hashtbl.is_empty mutated
     let add lv = Global_Hashtbl.add lv mutated ~tblname:"Mutated_Global_Vars"
     let iter fn = Global_Hashtbl.iter fn mutated
@@ -349,15 +365,18 @@ module Arithmetic_Mutations = struct
       0 !mutations
 
   let iter_unique fn =
+    let visited = ref [] in
     List.iter
       (fun mutation ->
-        if assignment_count mutation.lval = 1 then
-          fn mutation.lval mutation.op mutation.rhs
-        else
-          p_warning
-            "Skipping arithmetic safety annotation for %a because it is \
-             assigned more than once."
-            Printer.pp_lval mutation.lval)
+        if not (List.exists (Isp_lval.same mutation.lval) !visited) then (
+          visited := mutation.lval :: !visited;
+          if assignment_count mutation.lval = 1 then
+            fn mutation.lval mutation.op mutation.rhs
+          else
+            Isp_diagnostics.warning "ISP-W009"
+              (Format.asprintf
+                 "Skipping arithmetic safety annotation for %a because it is assigned more than once."
+                 Printer.pp_lval mutation.lval)))
       !mutations
 
   let clear () =
@@ -402,8 +421,7 @@ module Utils = struct
         match lv with
         | Var vi, _ ->
             if Global_Vars.contains vi.vid then
-              let name = Isp_utils.create_string_of_lval_name lv in
-              if not (Global_Vars.Accessed_Global_Vars.contains name) then
+              if not (Global_Vars.Accessed_Global_Vars.contains lv) then
                 Global_Vars.Accessed_Global_Vars.add lv
               else ()
         | Mem e, _ ->
@@ -457,8 +475,7 @@ module Utils = struct
         match lv with
         | Var vi, _ ->
             if Global_Vars.contains vi.vid then (
-              let name = Isp_utils.create_string_of_lval_name lv in
-              if not (Global_Vars.Accessed_Global_Vars.contains name) then
+              if not (Global_Vars.Accessed_Global_Vars.contains lv) then
                 Global_Vars.Accessed_Global_Vars.add lv)
             else if
               Visited_function_arguments.non_ptr_arg_ids_contain vi.vid

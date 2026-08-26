@@ -1,0 +1,3 @@
+requires retain records[1].level and records[1].status
+ensures retain records[1].level and records[1].status
+assigns retain records[1].level and records[1].status

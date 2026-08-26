@@ -26,8 +26,8 @@ val extract_lvals_from_exp :
 (** Extracts the [Cil_types.lval]s form an expression. *)
 
 val create_string_of_lval_name : Cil_types.lval -> string
-(** Creates a string representation of a variable from varinfo and offset.
-Example: [varinfo = "x"] and [offset = 2] : will return ["x[2]"] *)
+(** Creates a readable representation of a variable and its complete offset
+    chain. Global-state tables combine this text with the variable's CIL id. *)
 
 val lval_to_address_term : Cil_types.lval -> Cil_types.term
 (** Will create a term that represents the address of the given lval.
@@ -52,9 +52,9 @@ val is_array_with_lval_index : Cil_types.lval -> bool
 (** Checks whether the lval is an array with a lval index. *)
 
 val get_lvals_with_const_index :
-  Cil_types.lval -> Eva.Results.request -> (string * Cil_types.lval) list
-(** Converts a lval of an array with a lval index to a list of [(name, lval)]
-    with a constant index *)
+  Cil_types.lval -> Eva.Results.request -> Cil_types.lval list
+(** Converts an array lvalue with a variable index to structurally distinct
+    lvalues with concrete indices while preserving the complete offset chain. *)
 
 val find_field_offsets : Cil_types.typ -> Cil_types.offset list
 (** Generates a list of offsets for all fields in a struct recursively, i.e.
