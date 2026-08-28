@@ -1,4 +1,6 @@
 {
+  if (upper == "")
+    upper = 1023
   saw_input = 1
 }
 
@@ -14,7 +16,7 @@
   saw_lower_endpoint = 1
 }
 
-/requires \\valid\(&Y\[1023\]\);/ {
+$0 ~ "requires \\\\valid\\(&Y\\[" upper "\\]\\);" {
   saw_upper_endpoint = 1
 }
 
@@ -24,10 +26,16 @@ END {
 
   if (expected == "bounded") {
     if (!saw_e011 && saw_lower_endpoint && saw_upper_endpoint) {
-      print "1024-value expansion retains both endpoints"
+      if (upper == 1023)
+        print "1024-value expansion retains both endpoints"
+      else
+        print (upper + 1) "-value expansion retains both endpoints"
       exit 0
     }
-    print "1024-value expansion was rejected or lost an endpoint"
+    if (upper == 1023)
+      print "1024-value expansion was rejected or lost an endpoint"
+    else
+      print (upper + 1) "-value expansion was rejected or lost an endpoint"
     exit 1
   }
 
