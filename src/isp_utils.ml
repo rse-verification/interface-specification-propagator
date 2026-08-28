@@ -21,15 +21,19 @@
 
 open Cil_types
 
-let p_result = Isp_options.Self.result
 let p_debug = Isp_options.Self.debug
-let p_warning = Isp_options.Self.warning
 
-let ( -- ) i j =
-  let rec aux n acc =
-    if Integer.lt n i then acc else aux (Integer.sub n Integer.one) (n :: acc)
+let max_index_expansion = 1024
+
+let bounded_integer_range lower upper =
+  let rec collect current remaining acc =
+    if Integer.lt current lower then Some acc
+    else if remaining = 0 then None
+    else
+      collect (Integer.sub current Integer.one) (remaining - 1)
+        (current :: acc)
   in
-  aux j []
+  collect upper max_index_expansion []
 
 module LvalSet = Set.Make (Cil_datatype.Lval)
 
@@ -66,67 +70,38 @@ let extract_lvals_from_exp frama_c_visitor e =
 
 let get_enum_value ei =
   match ei.eival.enode with
-  | Const c -> (
-      p_debug "··· The type of the Enum is Const." ~level:3;
-      match c with
-      | CInt64 (i, _, _) ->
-          p_debug "··· The Const is of type Int64." ~level:3;
-          Format.sprintf "%d" (Integer.to_int_exn i)
-      | _ ->
-          Isp_diagnostics.failure "ISP-E001"
-            "Enum constant value is not supported; review the generated annotations.")
+  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Integer.to_int_exn i)
   | _ ->
       Isp_diagnostics.failure "ISP-E001"
         "Enum value is not supported; review the generated annotations."
 
 let rec get_index_as_string e =
   match e.enode with
-  | Const c -> (
-      p_debug "·· The index is of type Const." ~level:2;
-      match c with
-      | CInt64 (i, _, _) ->
-          p_debug "·· The type of the Const is Int64." ~level:2;
-          Format.sprintf "%d" (Integer.to_int_exn i)
-      | CEnum ei ->
-          p_debug "·· The type of the Const is Enum." ~level:2;
-          get_enum_value ei
-      | _ ->
-          Isp_diagnostics.failure "ISP-E002"
-            "Array indexes must be integer expressions; review the input and generated annotations.")
-  | CastE (_, exp) ->
-      p_debug "·· The index is of type CastE." ~level:2;
-      get_index_as_string exp
-  | Lval (lh, _) -> (
-      match lh with
-      | Var vi -> vi.vname
-      | Mem _ ->
-          Isp_diagnostics.failure "ISP-E003"
-            "Memory-based array indexes are not supported; simplify the index or review the output.")
+  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Integer.to_int_exn i)
+  | Const (CEnum ei) -> get_enum_value ei
+  | CastE (_, exp) -> get_index_as_string exp
+  | Lval (Var vi, _) -> vi.vname
+  | Lval (Mem _, _) ->
+      Isp_diagnostics.failure "ISP-E003"
+        "Memory-based array indexes are not supported; simplify the index or review the output."
   | _ ->
-      Isp_diagnostics.warning "ISP-W004"
-        (Format.asprintf
-           "Expression %a is not supported; generated annotations may be incomplete."
-           Printer.pp_exp e);
       Isp_diagnostics.failure "ISP-E004"
         "The unsupported expression reached index extraction; review the input and generated annotations."
 
-let create_string_of_lval_name (lh, o) =
-  let vi =
-    match lh with
-    | Var v -> v
-    | Mem _ ->
-        Isp_diagnostics.failure "ISP-E003"
-          "Memory lvalues are not supported; review the generated annotations."
-  in
-  let offset_string =
-    match o with
-    | NoOffset -> ""
-    | Index (e, _) ->
-        let e_str = get_index_as_string e in
-        String.concat "" [ "["; e_str; "]" ]
-    | Field (_, _) -> Format.asprintf "%a" Printer.pp_offset o
-  in
-  String.concat "" [ vi.vname; offset_string ]
+let rec offset_as_string = function
+  | NoOffset -> ""
+  | Index (index, tail) ->
+      Format.sprintf "[%s]%s" (get_index_as_string index)
+        (offset_as_string tail)
+  | Field (field, tail) ->
+      Format.sprintf ".%s%s" field.fname (offset_as_string tail)
+
+let create_string_of_lval_name (lh, offset) =
+  match lh with
+  | Var vi -> vi.vname ^ offset_as_string offset
+  | Mem _ ->
+      Isp_diagnostics.failure "ISP-E003"
+        "Memory lvalues are not supported; review the generated annotations."
 
 let lval_to_address_term lv =
   let tl = Logic_utils.lval_to_term_lval lv in
@@ -168,11 +143,16 @@ let is_array_with_lval_index (lh, o) =
 
 let get_lvals_with_const_index (lh, o) req =
   match lh with
-  | Var vi -> (
+  | Var _ -> (
       match o with
       | Index ({ enode = Lval lv_idx; _ }, tail) ->
-          let res = Eva.Results.as_ival(Eva.Results.eval_lval lv_idx req) in
-          let i : Ival.t = Result.get_ok res in
+          let i : Ival.t =
+            match Eva.Results.as_ival (Eva.Results.eval_lval lv_idx req) with
+            | Ok value -> value
+            | Error _ ->
+                Isp_diagnostics.unsupported "ISP-E011"
+                  "Eva could not resolve an array index to integer values; constrain the index or review the contract manually."
+          in
           let values =
             if Ival.is_singleton_int i then (
               p_debug "··· The lval index evaluates to a single value." ~level:3;
@@ -181,23 +161,35 @@ let get_lvals_with_const_index (lh, o) req =
             else if Ival.is_small_set i then (
               p_debug "··· The lval index evaluates to a small set of values."
                 ~level:3;
-              Option.get (Ival.project_small_set i))
+              match Ival.project_small_set i with
+              | Some values -> values
+              | None ->
+                  Isp_diagnostics.unsupported "ISP-E011"
+                    "Eva reported a finite array-index set but did not expose its values; constrain the index or review the contract manually.")
             else (
-              p_debug "··· The lval index evaluates to an interval of values."
-                ~level:3;
-              let liv = Option.get (Ival.min_int i) in
-              let uiv = Option.get (Ival.max_int i) in
-              liv -- uiv)
+                  p_debug
+                    "··· The lval index evaluates to an interval of values."
+                    ~level:3;
+                  match (Ival.min_int i, Ival.max_int i) with
+                  | Some lower, Some upper -> (
+                      match bounded_integer_range lower upper with
+                      | Some values -> values
+                      | None ->
+                          Isp_diagnostics.unsupported "ISP-E011"
+                            (Format.asprintf
+                               "Eva resolved an array index to more than %d values; constrain the index or review the contract manually."
+                               max_index_expansion))
+                  | _ ->
+                      Isp_diagnostics.unsupported "ISP-E011"
+                        "Eva resolved an array index to an unbounded interval; constrain the index or review the contract manually.")
           in
           List.fold_left
             (fun list value ->
-              let idx = Format.sprintf "%d" (Integer.to_int_exn value) in
-              let name = String.concat "" [ vi.vname; "["; idx; "]" ] in
               let dummy_e =
                 Cil.dummy_exp (Const (CInt64 (value, IInt, None)))
               in
               let new_o = Index (dummy_e, tail) in
-              (name, (lh, new_o)) :: list)
+              (lh, new_o) :: list)
             [] values
       | _ ->
           Isp_diagnostics.failure "ISP-E005"
@@ -213,6 +205,9 @@ let rec find_field_offsets typ =
     (* TODO: May be the case with TPtr TArray etc. Check Cil.unrollTypeDeep. *)
     Isp_diagnostics.failure "ISP-E006"
       "Annotations cannot be emitted for a non-unrolled type; review the type definition."
+  | TArray _ ->
+      Isp_diagnostics.unsupported "ISP-E010"
+        "Nested arrays inside structs are not supported during recursive field-offset expansion; simplify the aggregate or review the contract manually."
   | TComp (compinfo) ->
       List.flatten 
         (List.map
