@@ -146,11 +146,14 @@ from an internal state failure.
 | `ISP-E010` | An array is nested inside a struct during recursive field-offset expansion | ISP stops with a clear unsupported-input diagnostic; simplify the aggregate or review the contract manually. |
 | `ISP-E011` | Eva cannot finitely resolve a direct variable array index, or resolving it would expand more than 1024 values | Constrain the index range or review the affected contract manually. |
 
-Warnings do not make ISP abort, but they mean the generated specification may
-be partial and must be reviewed before relying on it in WP. Fatal diagnostics
-are reported through Frama-C's usual non-zero failure path, with the stable ID
-included in the message. ISP does not assign a separate process exit-code
-scheme; callers should use Frama-C's exit status together with these IDs.
+Warnings do not make standalone ISP abort, but they mean the generated
+specification may be partial and must be reviewed before relying on it in WP.
+AutoDeduct deliberately applies a stricter integration policy: an `ISP-Wxxx`
+warning fails the ISP stage and prevents the pipeline from continuing to WP.
+Fatal diagnostics are reported through Frama-C's usual non-zero failure path,
+with the stable ID included in the message. ISP does not assign a separate
+process exit-code scheme; callers should use Frama-C's exit status together
+with these IDs.
 
 Defined global ACSL logic functions and predicates are copied unchanged and do
 not produce `ISP-W001`. This exception is deliberately limited to Frama-C's
