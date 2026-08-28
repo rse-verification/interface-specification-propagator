@@ -4,11 +4,11 @@
 [eva] Analyzing an incomplete application starting at main
 [eva:initial-state] Values of globals at initialization
   
-[eva:alarm] isp_052_pure_logic_definitions.c:16: Warning: 
-  function main: precondition got status unknown.
-[eva:alarm] isp_052_pure_logic_definitions.c:17: Warning: 
-  function main: postcondition got status unknown.
 [eva:alarm] isp_052_pure_logic_definitions.c:18: Warning: 
+  function main: precondition got status unknown.
+[eva:alarm] isp_052_pure_logic_definitions.c:19: Warning: 
+  function main: postcondition got status unknown.
+[eva:alarm] isp_052_pure_logic_definitions.c:20: Warning: 
   function main: postcondition got status unknown.
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
@@ -27,6 +27,8 @@
 /*@ logic ℤ increment(ℤ value) = value + 1;
  */
 /*@ predicate is_positive(ℤ value) = value > 0;
+ */
+/*@ logic ℤ read_value{L}(int *p) = *p;
  */
 /*@ requires value ≥ -100;
     requires value ≤ 100;
