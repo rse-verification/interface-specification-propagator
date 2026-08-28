@@ -1,11 +1,13 @@
 /* run.config
 OPT: -no-check -autoload-plugins -isp -isp-print
-COMMENT: "Pure definitional ACSL logic functions and predicates are copied without ISP-W001."
+COMMENT: "Defined ACSL logic functions and predicates are copied without ISP-W001."
 */
 
 /*@ logic integer increment(integer value) = value + 1; */
 
 /*@ predicate is_positive(integer value) = value > 0; */
+
+/*@ logic integer read_value{L}(int *p) = *p; */
 
 int helper(int value)
 {
