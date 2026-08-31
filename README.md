@@ -28,6 +28,19 @@ frama-c-ptests
 dune build @ptests
 ```
 
+## Test output oracles
+
+Ptests compare command output with `.oracle` files. The regression tests in
+this series use a named `awk` filter, declared with `DEPS` and `FILTER`, before
+this comparison. This keeps the oracle focused on the stable semantic property
+under test instead of Frama-C output that can vary with source locations,
+formatting, or Eva summaries.
+
+Each filter must be small and reviewable: its filename and the test `COMMENT`
+state the property it checks, it must fail when a required property is absent
+or an unexpected diagnostic is present, and on success it must print one
+human-readable line matched by the corresponding `.oracle` file.
+
 ## USE
 
 ISP analyzes C programs with existing ACSL contracts and generates auxiliary ACSL annotations for Frama-C/WP.
