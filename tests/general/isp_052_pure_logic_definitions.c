@@ -1,4 +1,6 @@
 /* run.config
+DEPS: check_global_annotations.awk
+FILTER: awk -v expected=defined -f @PTEST_DIR@/check_global_annotations.awk
 OPT: -no-check -autoload-plugins -isp -isp-print
 COMMENT: "Pure definitional ACSL logic functions and predicates are copied without ISP-W001."
 */
