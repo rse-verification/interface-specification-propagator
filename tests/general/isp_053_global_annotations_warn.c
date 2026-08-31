@@ -1,4 +1,6 @@
 /* run.config
+DEPS: check_global_annotations.awk
+FILTER: awk -v expected=unsupported -f @PTEST_DIR@/check_global_annotations.awk
 OPT: -no-check -autoload-plugins -isp -isp-print
 COMMENT: "Soundness-relevant global ACSL annotations retain ISP-W001."
 */
