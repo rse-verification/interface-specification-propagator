@@ -1,0 +1,1 @@
+defined global logic annotations, including a memory read, are preserved without ISP-W001

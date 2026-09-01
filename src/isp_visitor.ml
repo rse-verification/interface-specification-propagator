@@ -68,9 +68,11 @@ class interface_specifications_propagator _ep prj =
           p_warning
             "[ISP-W001] Global text is not covered; generated annotations may be incomplete.";
           JustCopy
+      (* ISP preserves defined logic annotations unchanged. This is a
+         structural classification, not a semantic purity check. *)
+      | GAnnot (Dfun_or_pred ({ l_body = (LBterm _ | LBpred _); _ }, _), _) -> JustCopy
       | GAnnot (_, _) ->
-          p_warning
-            "[ISP-W001] Global annotations are not covered; generated annotations may be incomplete.";
+          p_warning "[ISP-W001] Global annotations are not covered; generated annotations may be incomplete.";
           JustCopy
       | GVar (vi, _, _) ->
           p_debug "Processing global variable: %a." Printer.pp_varinfo vi;
