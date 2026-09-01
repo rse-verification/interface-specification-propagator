@@ -1,7 +1,9 @@
 /* run.config
 EXIT: 125
+DEPS: check_unsupported_pointer_crash.awk
+FILTER: awk -f @PTEST_DIR@/check_unsupported_pointer_crash.awk
 OPT: -no-check -autoload-plugins -isp -isp-print
-COMMENT: "Testing manipulated pointer. Crashes right now."
+COMMENT: "Computed pointer lvalues report ISP-W003 and the known ISP-E005 failure."
 */
 
 int X;
