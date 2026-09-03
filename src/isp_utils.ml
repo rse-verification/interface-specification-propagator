@@ -27,10 +27,10 @@ let max_index_expansion = 1024
 
 let bounded_integer_range lower upper =
   let rec collect current remaining acc =
-    if Integer.lt current lower then Some acc
+    if Z.leq current lower then Some acc
     else if remaining = 0 then None
     else
-      collect (Integer.sub current Integer.one) (remaining - 1)
+      collect (Z.sub current Z.one) (remaining - 1)
         (current :: acc)
   in
   collect upper max_index_expansion []
@@ -70,14 +70,14 @@ let extract_lvals_from_exp frama_c_visitor e =
 
 let get_enum_value ei =
   match ei.eival.enode with
-  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Integer.to_int_exn i)
+  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Z.to_int i)
   | _ ->
       Isp_diagnostics.failure "ISP-E001"
         "Enum value is not supported; review the generated annotations."
 
 let rec get_index_as_string e =
   match e.enode with
-  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Integer.to_int_exn i)
+  | Const (CInt64 (i, _, _)) -> Format.sprintf "%d" (Z.to_int i)
   | Const (CEnum ei) -> get_enum_value ei
   | CastE (_, exp) -> get_index_as_string exp
   | Lval (Var vi, _) -> vi.vname
@@ -108,7 +108,7 @@ let lval_to_address_term lv =
   Logic_utils.mk_logic_AddrOf tl (Cil.typeOfTermLval tl)
 
 let lval_to_term lv =
-  let e = Cil.new_exp ~loc:Cil_datatype.Location.unknown (Lval lv) in
+  let e = Cil.new_exp ~loc:Fileloc.unknown (Lval lv) in
   Logic_utils.expr_to_term e
 
 let abstract_float_to_term_float f = Fval.F.to_float f |> Logic_const.treal
