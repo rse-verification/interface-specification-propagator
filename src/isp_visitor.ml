@@ -206,28 +206,21 @@ class interface_specifications_propagator _ep prj =
                     p_warning
                       "[ISP-W003] A call result is stored through a memory lvalue; review the generated annotations.");
 
-                match e.enode with
-                | Lval lv -> (
-                    p_debug "· The right side expression is of type Lval.";
-                    match lv with
-                    | Var vi, _o -> (
-                        p_debug "· The Lval is of type Var.";
-                        match vi.vtype.tnode with
-                        | TFun (_, _, _) ->
-                            p_debug "· The Var is a function.";
-                            let kf = Globals.Functions.find_by_name vi.vname in
-                            Isp_local_states.Utils
-                            .add_function_access_and_mutations kf
-                        | _ ->
-                            p_warning
-                              "[ISP-W004] The called variable has an unsupported type; review the generated annotations.")
-                    | Mem _, _ ->
+                match lh with
+                | Var vi -> (
+                    p_debug "· The Lval is of type Var.";
+                    match vi.vtype.tnode with
+                    | TFun (_, _, _) ->
+                        p_debug "· The Var is a function.";
+                        let kf = Globals.Functions.find_by_name vi.vname in
+                        Isp_local_states.Utils
+                        .add_function_access_and_mutations kf
+                    | _ ->
                         p_warning
-                          "[ISP-W003] A function pointer call target is a memory lvalue; review the generated annotations.")
-                | _ ->
+                          "[ISP-W004] The called variable has an unsupported type; review the generated annotations.")
+                | Mem _ ->
                     p_warning
-                      "[ISP-W004] The call expression %a is not implemented; review the generated annotations."
-                      Printer.pp_exp e)
+                      "[ISP-W003] A function pointer call target is a memory lvalue; review the generated annotations.")
             | Local_init (_, li, _) -> (
                 p_debug "· The instruction is of type Local_init.";
                 match li with
