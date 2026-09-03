@@ -1,4 +1,4 @@
-(lang dune 3.2)
+(lang dune 3.13)
 (using dune_site 0.1)
 (name frama-c-isp)
 
@@ -14,8 +14,8 @@
 (package 
   (name frama-c-isp)
  (depends
-  (ocaml (>= 4.14.2))
-  (frama-c (= 31.0)))
+  (ocaml (>= 5.4))
+  (frama-c (and (>= 33) (< 34))))
  (synopsis "Automatic inference of ACSL auxilliary annotations")
  (description "This plugin for the Frama-C platform for source code analysis
 of C programs provides automatic inference of ACSL auxilliary annotations."))

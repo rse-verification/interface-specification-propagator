@@ -12,9 +12,9 @@ homepage:
   "https://github.com/rse-verification/interface-specification-propagator"
 bug-reports: "https://github.com/rse-verification/isp/issues"
 depends: [
-  "dune" {>= "3.2"}
-  "ocaml" {>= "4.14.2"}
-  "frama-c" {= "33.0"}
+  "dune" {>= "3.13"}
+  "ocaml" {>= "5.4"}
+  "frama-c" {>= "33" & < "34"}
   "odoc" {with-doc}
 ]
 build: [
