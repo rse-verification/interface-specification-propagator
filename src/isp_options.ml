@@ -22,7 +22,7 @@
 let help_msg = "Propagates interface specifications semanticaly"
 
 module Self = Plugin.Register (struct
-  let name = "isp"
+  let name = "Isp"
   let shortname = "isp"
   let help = help_msg
 end)
