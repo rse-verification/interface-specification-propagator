@@ -6,7 +6,7 @@
   saw_e011 = 1
 }
 
-/requires \\valid\(&Y\[0\]\);/ {
+/requires \\valid\([^;]*Y\[0\][^;]*;/ {
   saw_lower_endpoint = 1
 }
 
@@ -14,7 +14,7 @@
   saw_lower_endpoint = 1
 }
 
-/requires \\valid\(&Y\[1023\]\);/ {
+/requires \\valid\([^;]*Y\[1023\][^;]*;/ {
   saw_upper_endpoint = 1
 }
 

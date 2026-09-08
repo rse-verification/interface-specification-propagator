@@ -27,7 +27,8 @@ let max_index_expansion = 1024
 
 let bounded_integer_range lower upper =
   let rec collect current remaining acc =
-    if Z.leq current lower then Some acc
+    (* The range is inclusive, so [lower] must be collected before success. *)
+    if Z.lt current lower then Some acc
     else if remaining = 0 then None
     else
       collect (Z.sub current Z.one) (remaining - 1)
