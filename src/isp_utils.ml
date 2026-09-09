@@ -141,9 +141,35 @@ let is_array_with_lval_index (lh, o) =
       | _ -> false)
   | _ -> false
 
+let validate_array_index_extent vi values =
+  match (Ast_types.unroll vi.vtype).tnode with
+  | TArray (_, Some length) -> (
+      match Cil.constFoldToInt length with
+      | Some extent when Integer.gt extent Integer.zero ->
+          if
+            List.exists
+              (fun value ->
+                Integer.lt value Integer.zero || Integer.ge value extent)
+              values
+          then
+            Isp_diagnostics.unsupported "ISP-E012"
+              (Format.asprintf
+                 "Eva resolved an index of array %s outside its declared bounds; constrain the index or review the contract manually."
+                 vi.vname)
+      | _ ->
+          Isp_diagnostics.unsupported "ISP-E012"
+            (Format.asprintf
+               "Array %s does not have a fixed positive length; ISP cannot safely expand the index."
+               vi.vname))
+  | _ ->
+      Isp_diagnostics.unsupported "ISP-E012"
+        (Format.asprintf
+           "The indexed variable %s is not a fixed-size array; ISP cannot safely expand the index."
+           vi.vname)
+
 let get_lvals_with_const_index (lh, o) req =
   match lh with
-  | Var _ -> (
+  | Var vi -> (
       match o with
       | Index ({ enode = Lval lv_idx; _ }, tail) ->
           let i : Ival.t =
@@ -180,9 +206,10 @@ let get_lvals_with_const_index (lh, o) req =
                                "Eva resolved an array index to more than %d values; constrain the index or review the contract manually."
                                max_index_expansion))
                   | _ ->
-                      Isp_diagnostics.unsupported "ISP-E011"
-                        "Eva resolved an array index to an unbounded interval; constrain the index or review the contract manually.")
+                          Isp_diagnostics.unsupported "ISP-E011"
+                            "Eva resolved an array index to an unbounded interval; constrain the index or review the contract manually.")
           in
+          validate_array_index_extent vi values;
           List.fold_left
             (fun list value ->
               let dummy_e =
