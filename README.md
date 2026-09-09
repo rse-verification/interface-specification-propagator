@@ -141,6 +141,10 @@ ISP warnings as stage failures and does not continue to WP.
 Errors abort through Frama-C and include a stable diagnostic identifier. ISP
 uses Frama-C's exit status and does not define separate process exit codes.
 
+Defined global ACSL logic functions and predicates are copied unchanged and do
+not produce `ISP-W001`. ISP does not analyze or rewrite their bodies. Other
+global annotations remain covered by `ISP-W001`.
+
 For direct accesses such as `array[index]` on fixed-size arrays, ISP checks
 every index value computed by Eva. If any value is outside `0..length-1`, ISP
 reports `ISP-E012` instead of generating an invalid ACSL lvalue.
