@@ -28,19 +28,6 @@ frama-c-ptests
 dune build @ptests
 ```
 
-## Test output oracles
-
-Ptests compare command output with `.oracle` files. The regression tests in
-this series use a named `awk` filter, declared with `DEPS` and `FILTER`, before
-this comparison. This keeps the oracle focused on the stable semantic property
-under test instead of Frama-C output that can vary with source locations,
-formatting, or Eva summaries.
-
-Each filter must be small and reviewable: its filename and the test `COMMENT`
-state the property it checks, it must fail when a required property is absent
-or an unexpected diagnostic is present, and on success it must print one
-human-readable line matched by the corresponding `.oracle` file.
-
 ## USE
 
 ISP analyzes C programs with existing ACSL contracts and generates auxiliary ACSL annotations for Frama-C/WP.
@@ -153,15 +140,8 @@ included in the message. ISP does not assign a separate process exit-code
 scheme; callers should use Frama-C's exit status together with these IDs.
 
 Defined global ACSL logic functions and predicates are copied unchanged and do
-not produce `ISP-W001`. This exception is deliberately limited to Frama-C's
-typed `Dfun_or_pred` annotations whose body is `LBterm` (a logic function) or
-`LBpred` (a predicate). ISP does not interpret or rewrite these definitions; it
-only preserves them in the generated project. "Defined" does not mean that
-the body is independent of memory: for example, a labelled definition such as
-`read_value{L}(p) = *p` is also preserved unchanged. Declarations without a
-body, inductive definitions, axiomatic or module blocks, logic types, lemmas,
-global or type invariants, model fields, volatile clauses, and custom
-extensions remain conservatively covered by `ISP-W001`.
+not produce `ISP-W001`. ISP does not analyze or rewrite their bodies. Other
+global annotations remain covered by `ISP-W001`.
 
 The `ISP-E011` guard currently applies to direct lvalue index forms such as
 `array[index]`. Casts, arithmetic index expressions, memory-based indices, and
