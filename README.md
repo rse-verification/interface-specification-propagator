@@ -139,6 +139,10 @@ are reported through Frama-C's usual non-zero failure path, with the stable ID
 included in the message. ISP does not assign a separate process exit-code
 scheme; callers should use Frama-C's exit status together with these IDs.
 
+Defined global ACSL logic functions and predicates are copied unchanged and do
+not produce `ISP-W001`. ISP does not analyze or rewrite their bodies. Other
+global annotations remain covered by `ISP-W001`.
+
 The `ISP-E011` guard currently applies to direct lvalue index forms such as
 `array[index]`. Casts, arithmetic index expressions, memory-based indices, and
 variable indices deeper in an offset chain are not covered by this expansion
