@@ -16,10 +16,10 @@
 
 (** Stable diagnostic formatting for the ISP plugin.
 
-    Warnings are deliberately non-fatal: ISP can still emit a partial
-    specification. Unsupported inputs use Frama-C's user-abort path, while
-    internal failure paths keep the normal failure behaviour. All messages
-    carry an identifier that can be searched in logs and test output. *)
+    Warnings do not abort ISP, which may still emit a partial specification.
+    Unsupported inputs abort through Frama-C, while internal failures use the
+    normal exception path. Every message includes an identifier for use in
+    logs and test output. *)
 
 let warning code message = Isp_options.Self.warning "[%s] %s" code message
 
