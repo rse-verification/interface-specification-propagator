@@ -1,7 +1,7 @@
 /* run.config
 DEPS: check_index_declared_extent.awk
 FILTER: awk -f @PTEST_DIR@/check_index_declared_extent.awk
-COMMENT: "Negative Eva-resolved array indices fail closed."
+COMMENT: "Negative Eva-resolved array indices are rejected with ISP-E012."
 EXIT: 1
 OPT: -no-check -autoload-plugins -isp -isp-print
 */

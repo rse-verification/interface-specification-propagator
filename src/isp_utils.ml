@@ -154,17 +154,17 @@ let validate_array_index_extent vi values =
           then
             Isp_diagnostics.unsupported "ISP-E012"
               (Format.asprintf
-                 "Eva resolved an index of array %s outside its declared extent; constrain the index or review the contract manually."
+                 "Eva resolved an index of array %s outside its declared bounds; constrain the index or review the contract manually."
                  vi.vname)
       | _ ->
           Isp_diagnostics.unsupported "ISP-E012"
             (Format.asprintf
-               "The declared extent of array %s is not a finite positive integer; ISP cannot safely expand the index."
+               "Array %s does not have a fixed positive length; ISP cannot safely expand the index."
                vi.vname))
   | _ ->
       Isp_diagnostics.unsupported "ISP-E012"
         (Format.asprintf
-           "The indexed variable %s has no finite declared array extent; ISP cannot safely expand the index."
+           "The indexed variable %s is not a fixed-size array; ISP cannot safely expand the index."
            vi.vname)
 
 let get_lvals_with_const_index (lh, o) req =

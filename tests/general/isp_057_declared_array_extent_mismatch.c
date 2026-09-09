@@ -1,7 +1,7 @@
 /* run.config
 DEPS: check_index_declared_extent.awk
 FILTER: awk -f @PTEST_DIR@/check_index_declared_extent.awk
-COMMENT: "An Eva range wider than the declared array extent fails closed."
+COMMENT: "An Eva-resolved interval beyond the array bounds is rejected with ISP-E012."
 EXIT: 1
 OPT: -no-check -autoload-plugins -isp -isp-print
 */

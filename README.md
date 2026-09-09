@@ -132,24 +132,23 @@ from an internal state failure.
 | `ISP-E008`-`ISP-E009` | Required visitor/Eva state is missing | Retry with the same input; report the diagnostic if it persists. |
 | `ISP-E010` | An array is nested inside a struct during recursive field-offset expansion | ISP stops with a clear unsupported-input diagnostic; simplify the aggregate or review the contract manually. |
 | `ISP-E011` | Eva cannot finitely resolve a direct variable array index, or resolving it would expand more than 1024 values | Constrain the index range or review the affected contract manually. |
-| `ISP-E012` | Eva resolved a direct variable array index outside its finite declared array extent | Constrain the index to the declared extent or review the affected contract manually. |
+| `ISP-E012` | Eva found an index outside the bounds of a fixed-size array | Constrain the index to the array bounds or review the affected contract manually. |
 
-Warnings do not make standalone ISP abort, but they mean the generated
-specification may be partial and must be reviewed before relying on it in WP.
-AutoDeduct deliberately applies a stricter integration policy: an `ISP-Wxxx`
-warning fails the ISP stage and prevents the pipeline from continuing to WP.
-Fatal diagnostics are reported through Frama-C's usual non-zero failure path,
-with the stable ID included in the message. ISP does not assign a separate
-process exit-code scheme; callers should use Frama-C's exit status together
-with these IDs.
+Warnings do not abort ISP, but they indicate that the generated specification
+may be incomplete and should be reviewed before use with WP. AutoDeduct treats
+ISP warnings as stage failures and does not continue to WP.
 
-The `ISP-E011` guard currently applies to direct lvalue index forms such as
-`array[index]`. `ISP-E012` additionally checks every expanded value against the
-finite declared extent of a fixed-size direct array; values outside that extent
-are rejected before an ACSL lvalue is emitted. Casts, arithmetic index
-expressions, memory-based indices, variable-length or incomplete array
-extents, and variable indices deeper in an offset chain are not covered by this
-expansion path and remain conservative failures or limitations.
+Errors abort through Frama-C and include a stable diagnostic identifier. ISP
+uses Frama-C's exit status and does not define separate process exit codes.
+
+For direct accesses such as `array[index]` on fixed-size arrays, ISP checks
+every index value computed by Eva. If any value is outside `0..length-1`, ISP
+reports `ISP-E012` instead of generating an invalid ACSL lvalue.
+
+This check does not handle casts, arithmetic index expressions, pointer-based
+accesses, variable-length or incomplete arrays, or variable indices deeper in
+an offset chain. These cases require manual review or may produce another ISP
+diagnostic.
 
 For reference, these are the Master's thesis reports by Skantz and Manjikian:
 - [Synthesis of annotations for partially automated deductive verification](https://kth.diva-portal.org/smash/get/diva2:1564101/FULLTEXT01.pdf) by Daniel Skantz
