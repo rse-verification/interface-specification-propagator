@@ -25,8 +25,7 @@ dune install
 To run the test suite locally:
 
 ```sh
-frama-c-ptests
-dune build @ptests
+dune test
 ```
 
 ## USE
