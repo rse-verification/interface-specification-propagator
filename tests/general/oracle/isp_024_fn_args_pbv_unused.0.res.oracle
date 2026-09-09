@@ -24,8 +24,7 @@ int X;
 /*@ requires x ≡ 1;
     requires x ≡ 1;
     ensures \result ≡ 3;
-    assigns \nothing;
- */
+    assigns \nothing; */
 int increment(int x, int y)
 {
   x = 2;

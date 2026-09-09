@@ -29,8 +29,11 @@ let function_name kf =
 
 let function_location kf =
   let start_pos, _ = Kernel_function.get_location kf in
-  let file = Filename.basename (Filepath.to_string start_pos.pos_path) in
-  (file, start_pos.pos_lnum)
+  let file =
+    Filename.basename (Filepath.to_string (Filepos.path start_pos))
+  in
+  let line = Filepos.line start_pos in
+  (file, line)
 
 let function_has_contract kf =
   Annotations.has_funspec kf
@@ -79,7 +82,7 @@ let collect_direct_calls fd =
 
       method! vstmt_aux stmt =
         (match stmt.skind with
-        | Instr (Call (_, { enode = Lval (Var vi, _); _ }, _, _)) ->
+        | Instr (Call (_, Var vi, _, _)) ->
             add_varinfo vi
         | Instr (Local_init (_, ConsInit (vi, _, _), _)) -> add_varinfo vi
         | _ -> ());

@@ -392,10 +392,10 @@ module Auxiliary = struct
     Isp_local_states.Arithmetic_Mutations.iter_unique (fun lv op rhs ->
         match (integer_bounds_for_lval lv, integer_of_exp rhs) with
         | Some (min_bound, max_bound), Some value
-          when Integer.ge value Integer.zero -> (
+          when Z.geq value Z.zero -> (
             match op with
-            | PlusA -> emit_bound lv Rle (Integer.sub max_bound value)
-            | MinusA -> emit_bound lv Rge (Integer.add min_bound value)
+            | PlusA -> emit_bound lv Rle (Z.sub max_bound value)
+            | MinusA -> emit_bound lv Rge (Z.add min_bound value)
             | _ -> ())
         | _ -> ())
 

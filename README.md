@@ -14,7 +14,8 @@ The purpose of this Frama-C plugin is to automatically provide contract componen
 
 ## INSTALL
 
-This plugin currently targets Frama-C 31.0, as declared in `dune-project`.
+This branch targets Frama-C 33.x, as declared in `dune-project`, and requires
+OCaml 5.4 or newer.
 
 ```sh
 dune build @install
@@ -24,8 +25,7 @@ dune install
 To run the test suite locally:
 
 ```sh
-frama-c-ptests
-dune build @ptests
+dune test
 ```
 
 ## USE

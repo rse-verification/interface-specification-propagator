@@ -44,7 +44,7 @@ val get_eva_analysis_for_lval : Eva.Results.request -> Cil_types.lval -> Ival.t 
 (** Gets the eva analysis result for the given lval. *)
 
 val create_subset_ip :
-  Cil_types.term -> Integer.t list -> Cil_types.identified_predicate
+  Cil_types.term -> Z.t list -> Cil_types.identified_predicate
 (** Creates an identified predicate that corrisponds to the ACSL annotation
     t \in s. *)
 
