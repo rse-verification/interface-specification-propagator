@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_042_missing_helper_contract_report.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_042_missing_helper_contract_report.c -autoload-plugins -isp-missing-helper-contracts > \"isp_042_missing_helper_contract_report.0.res.log\" 2> \"isp_042_missing_helper_contract_report.0.err.log\"",
+  "out": "isp_042_missing_helper_contract_report.0.res.log",
+  "err": "isp_042_missing_helper_contract_report.0.err.log",
+  "oracle_out": "../oracle/isp_042_missing_helper_contract_report.0.res.oracle",
+  "oracle_err": "../oracle/isp_042_missing_helper_contract_report.0.err.oracle"
+}

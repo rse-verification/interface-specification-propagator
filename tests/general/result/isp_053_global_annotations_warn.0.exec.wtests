@@ -1,0 +1,13 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_053_global_annotations_warn.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_053_global_annotations_warn.c -no-check -autoload-plugins -isp -isp-print > \"isp_053_global_annotations_warn.0.res.unfiltered-log\" 2> \"isp_053_global_annotations_warn.0.err.unfiltered-log\"",
+  "out": "isp_053_global_annotations_warn.0.res.log",
+  "err": "isp_053_global_annotations_warn.0.err.log",
+  "tmpout": "isp_053_global_annotations_warn.0.res.unfiltered-log",
+  "tmperr": "isp_053_global_annotations_warn.0.err.unfiltered-log",
+  "sedout": "cat isp_053_global_annotations_warn.0.res.unfiltered-log | awk -v expected=unsupported -f ./check_global_annotations.awk > \"isp_053_global_annotations_warn.0.res.log\"",
+  "sederr": "cat isp_053_global_annotations_warn.0.err.unfiltered-log | awk -v expected=unsupported -f ./check_global_annotations.awk > \"isp_053_global_annotations_warn.0.err.log\"",
+  "oracle_out": "../oracle/isp_053_global_annotations_warn.0.res.oracle",
+  "oracle_err": "../oracle/isp_053_global_annotations_warn.0.err.oracle"
+}

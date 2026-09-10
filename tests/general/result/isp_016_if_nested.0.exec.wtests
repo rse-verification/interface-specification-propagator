@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_016_if_nested.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_016_if_nested.c -no-check -autoload-plugins -isp -isp-print > \"isp_016_if_nested.0.res.log\" 2> \"isp_016_if_nested.0.err.log\"",
+  "out": "isp_016_if_nested.0.res.log",
+  "err": "isp_016_if_nested.0.err.log",
+  "oracle_out": "../oracle/isp_016_if_nested.0.res.oracle",
+  "oracle_err": "../oracle/isp_016_if_nested.0.err.oracle"
+}
