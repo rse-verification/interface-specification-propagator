@@ -1,0 +1,13 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_049_index_expansion_limit.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_049_index_expansion_limit.c -no-check -autoload-plugins -isp -isp-print > \"isp_049_index_expansion_limit.0.res.unfiltered-log\" 2> \"isp_049_index_expansion_limit.0.err.unfiltered-log\"",
+  "out": "isp_049_index_expansion_limit.0.res.log",
+  "err": "isp_049_index_expansion_limit.0.err.log",
+  "tmpout": "isp_049_index_expansion_limit.0.res.unfiltered-log",
+  "tmperr": "isp_049_index_expansion_limit.0.err.unfiltered-log",
+  "sedout": "cat isp_049_index_expansion_limit.0.res.unfiltered-log | awk -v expected=bounded -f ./check_index_expansion_boundary.awk > \"isp_049_index_expansion_limit.0.res.log\"",
+  "sederr": "cat isp_049_index_expansion_limit.0.err.unfiltered-log | awk -v expected=bounded -f ./check_index_expansion_boundary.awk > \"isp_049_index_expansion_limit.0.err.log\"",
+  "oracle_out": "../oracle/isp_049_index_expansion_limit.0.res.oracle",
+  "oracle_err": "../oracle/isp_049_index_expansion_limit.0.err.oracle"
+}

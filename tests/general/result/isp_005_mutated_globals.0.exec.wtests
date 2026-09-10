@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_005_mutated_globals.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_005_mutated_globals.c -autoload-plugins -isp -isp-print > \"isp_005_mutated_globals.0.res.log\" 2> \"isp_005_mutated_globals.0.err.log\"",
+  "out": "isp_005_mutated_globals.0.res.log",
+  "err": "isp_005_mutated_globals.0.err.log",
+  "oracle_out": "../oracle/isp_005_mutated_globals.0.res.oracle",
+  "oracle_err": "../oracle/isp_005_mutated_globals.0.err.oracle"
+}

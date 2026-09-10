@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_022_pointers.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_022_pointers.c -no-check -autoload-plugins -isp -isp-print > \"isp_022_pointers.0.res.log\" 2> \"isp_022_pointers.0.err.log\"",
+  "out": "isp_022_pointers.0.res.log",
+  "err": "isp_022_pointers.0.err.log",
+  "oracle_out": "../oracle/isp_022_pointers.0.res.oracle",
+  "oracle_err": "../oracle/isp_022_pointers.0.err.oracle"
+}

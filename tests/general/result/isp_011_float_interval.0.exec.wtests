@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_011_float_interval.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_011_float_interval.c -autoload-plugins -isp -isp-print > \"isp_011_float_interval.0.res.log\" 2> \"isp_011_float_interval.0.err.log\"",
+  "out": "isp_011_float_interval.0.res.log",
+  "err": "isp_011_float_interval.0.err.log",
+  "oracle_out": "../oracle/isp_011_float_interval.0.res.oracle",
+  "oracle_err": "../oracle/isp_011_float_interval.0.err.oracle"
+}

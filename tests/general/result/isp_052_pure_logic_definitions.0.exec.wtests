@@ -1,0 +1,13 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_052_pure_logic_definitions.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_052_pure_logic_definitions.c -no-check -autoload-plugins -isp -isp-print > \"isp_052_pure_logic_definitions.0.res.unfiltered-log\" 2> \"isp_052_pure_logic_definitions.0.err.unfiltered-log\"",
+  "out": "isp_052_pure_logic_definitions.0.res.log",
+  "err": "isp_052_pure_logic_definitions.0.err.log",
+  "tmpout": "isp_052_pure_logic_definitions.0.res.unfiltered-log",
+  "tmperr": "isp_052_pure_logic_definitions.0.err.unfiltered-log",
+  "sedout": "cat isp_052_pure_logic_definitions.0.res.unfiltered-log | awk -v expected=defined -v expect_memory_read=1 -f ./check_global_annotations.awk > \"isp_052_pure_logic_definitions.0.res.log\"",
+  "sederr": "cat isp_052_pure_logic_definitions.0.err.unfiltered-log | awk -v expected=defined -v expect_memory_read=1 -f ./check_global_annotations.awk > \"isp_052_pure_logic_definitions.0.err.log\"",
+  "oracle_out": "../oracle/isp_052_pure_logic_definitions.0.res.oracle",
+  "oracle_err": "../oracle/isp_052_pure_logic_definitions.0.err.oracle"
+}

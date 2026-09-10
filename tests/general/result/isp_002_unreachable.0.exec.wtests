@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_002_unreachable.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_002_unreachable.c -autoload-plugins -isp > \"isp_002_unreachable.0.res.log\" 2> \"isp_002_unreachable.0.err.log\"",
+  "out": "isp_002_unreachable.0.res.log",
+  "err": "isp_002_unreachable.0.err.log",
+  "oracle_out": "../oracle/isp_002_unreachable.0.res.oracle",
+  "oracle_err": "../oracle/isp_002_unreachable.0.err.oracle"
+}
