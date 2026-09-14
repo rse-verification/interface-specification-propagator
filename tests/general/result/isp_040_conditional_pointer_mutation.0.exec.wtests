@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_040_conditional_pointer_mutation.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_040_conditional_pointer_mutation.c -no-check -autoload-plugins -isp -isp-print > \"isp_040_conditional_pointer_mutation.0.res.log\" 2> \"isp_040_conditional_pointer_mutation.0.err.log\"",
+  "out": "isp_040_conditional_pointer_mutation.0.res.log",
+  "err": "isp_040_conditional_pointer_mutation.0.err.log",
+  "oracle_out": "../oracle/isp_040_conditional_pointer_mutation.0.res.oracle",
+  "oracle_err": "../oracle/isp_040_conditional_pointer_mutation.0.err.oracle"
+}

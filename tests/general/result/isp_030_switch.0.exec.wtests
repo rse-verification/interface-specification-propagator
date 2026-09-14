@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_030_switch.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_030_switch.c -no-check -autoload-plugins -isp -isp-print > \"isp_030_switch.0.res.log\" 2> \"isp_030_switch.0.err.log\"",
+  "out": "isp_030_switch.0.res.log",
+  "err": "isp_030_switch.0.err.log",
+  "oracle_out": "../oracle/isp_030_switch.0.res.oracle",
+  "oracle_err": "../oracle/isp_030_switch.0.err.oracle"
+}

@@ -1,0 +1,14 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_055_negative_index_interval.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_055_negative_index_interval.c -no-check -autoload-plugins -isp -isp-print > \"isp_055_negative_index_interval.0.res.unfiltered-log\" 2> \"isp_055_negative_index_interval.0.err.unfiltered-log\"",
+  "ret_code": 1,
+  "out": "isp_055_negative_index_interval.0.res.log",
+  "err": "isp_055_negative_index_interval.0.err.log",
+  "tmpout": "isp_055_negative_index_interval.0.res.unfiltered-log",
+  "tmperr": "isp_055_negative_index_interval.0.err.unfiltered-log",
+  "sedout": "cat isp_055_negative_index_interval.0.res.unfiltered-log | awk -f ./check_index_declared_extent.awk > \"isp_055_negative_index_interval.0.res.log\"",
+  "sederr": "cat isp_055_negative_index_interval.0.err.unfiltered-log | awk -f ./check_index_declared_extent.awk > \"isp_055_negative_index_interval.0.err.log\"",
+  "oracle_out": "../oracle/isp_055_negative_index_interval.0.res.oracle",
+  "oracle_err": "../oracle/isp_055_negative_index_interval.0.err.oracle"
+}

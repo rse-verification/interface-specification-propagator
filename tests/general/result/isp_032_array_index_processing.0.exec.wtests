@@ -1,0 +1,9 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_032_array_index_processing.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_032_array_index_processing.c -no-check -autoload-plugins -isp -isp-print > \"isp_032_array_index_processing.0.res.log\" 2> \"isp_032_array_index_processing.0.err.log\"",
+  "out": "isp_032_array_index_processing.0.res.log",
+  "err": "isp_032_array_index_processing.0.err.log",
+  "oracle_out": "../oracle/isp_032_array_index_processing.0.res.oracle",
+  "oracle_err": "../oracle/isp_032_array_index_processing.0.err.oracle"
+}

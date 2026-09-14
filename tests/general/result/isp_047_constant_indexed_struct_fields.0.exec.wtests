@@ -1,0 +1,13 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_047_constant_indexed_struct_fields.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_047_constant_indexed_struct_fields.c -no-check -autoload-plugins -isp -isp-print > \"isp_047_constant_indexed_struct_fields.0.res.unfiltered-log\" 2> \"isp_047_constant_indexed_struct_fields.0.err.unfiltered-log\"",
+  "out": "isp_047_constant_indexed_struct_fields.0.res.log",
+  "err": "isp_047_constant_indexed_struct_fields.0.err.log",
+  "tmpout": "isp_047_constant_indexed_struct_fields.0.res.unfiltered-log",
+  "tmperr": "isp_047_constant_indexed_struct_fields.0.err.unfiltered-log",
+  "sedout": "cat isp_047_constant_indexed_struct_fields.0.res.unfiltered-log | awk -f ./check_indexed_struct_fields.awk > \"isp_047_constant_indexed_struct_fields.0.res.log\"",
+  "sederr": "cat isp_047_constant_indexed_struct_fields.0.err.unfiltered-log | awk -f ./check_indexed_struct_fields.awk > \"isp_047_constant_indexed_struct_fields.0.err.log\"",
+  "oracle_out": "../oracle/isp_047_constant_indexed_struct_fields.0.res.oracle",
+  "oracle_err": "../oracle/isp_047_constant_indexed_struct_fields.0.err.oracle"
+}

@@ -1,0 +1,14 @@
+{
+  "dir": "tests/general/result",
+  "info": "TEST #0 OF TEST FILE tests/general/isp_050_index_expansion_too_wide.c",
+  "cmd": "frama-c -check -no-autoload-plugins -load-plugin=isp    isp_050_index_expansion_too_wide.c -no-check -autoload-plugins -isp -isp-print > \"isp_050_index_expansion_too_wide.0.res.unfiltered-log\" 2> \"isp_050_index_expansion_too_wide.0.err.unfiltered-log\"",
+  "ret_code": 1,
+  "out": "isp_050_index_expansion_too_wide.0.res.log",
+  "err": "isp_050_index_expansion_too_wide.0.err.log",
+  "tmpout": "isp_050_index_expansion_too_wide.0.res.unfiltered-log",
+  "tmperr": "isp_050_index_expansion_too_wide.0.err.unfiltered-log",
+  "sedout": "cat isp_050_index_expansion_too_wide.0.res.unfiltered-log | awk -v expected=oversized -f ./check_index_expansion_boundary.awk > \"isp_050_index_expansion_too_wide.0.res.log\"",
+  "sederr": "cat isp_050_index_expansion_too_wide.0.err.unfiltered-log | awk -v expected=oversized -f ./check_index_expansion_boundary.awk > \"isp_050_index_expansion_too_wide.0.err.log\"",
+  "oracle_out": "../oracle/isp_050_index_expansion_too_wide.0.res.oracle",
+  "oracle_err": "../oracle/isp_050_index_expansion_too_wide.0.err.oracle"
+}

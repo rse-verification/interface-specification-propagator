@@ -20,13 +20,7 @@
 **/.Makefile.plugin.generated
 **/Auto.check_mli_exists
 **/graph.out
-**/tests/*/result/
 **/frama_c_journal.ml
 **/settings.json
 **/.frama-c/
-**/tests/scania/stee
-**/tests/scania/stee_gustav
-**/tests/scania/warn
-**/tests/ghost
-**/tests/general/oracle/dune
 _build
